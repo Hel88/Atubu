@@ -25,6 +25,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +36,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.example.atubu.R
@@ -45,24 +45,44 @@ import kotlin.math.roundToInt
 class PlantScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var minGoal = 1000
+        var maxGoal = 2300
+
         setContent{
             var currentWaterQtt by remember { mutableIntStateOf(0) }
+
+            var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
+
+            fun addWater(addedWater: Float) {
+                currentWaterQtt = (currentWaterQtt + addedWater).toInt()
+                history = history + addedWater.toInt() // ajout à l'historique
+            }
+
+            fun emptyGauge(){
+                currentWaterQtt = 0
+            }
+            fun revertAction(){
+                if (history.isNotEmpty()){
+                    currentWaterQtt -= history.last()
+                    history = history.dropLast(1)
+                }
+            }
+
+
             Surface (
                 modifier = Modifier.fillMaxSize()
             ) {
 
                 Column (
                     verticalArrangement = Arrangement.Center
-
                 ){
 
-                    PlantAndWater(currentWaterQtt)
-                    Instructions("Glisser et déposer pour arroser la plante (TODO)")
+                    PlantAndWater(currentWaterQtt, minGoal, maxGoal)
+                    ResetButtons({ emptyGauge() }, {revertAction()})
 
-                    DrinkSelectionPanel { addedWater ->
-                        currentWaterQtt = (currentWaterQtt+addedWater).toInt() // Ajoute la quantité d'eau à la jauge
-                    }
+                    Instructions("Cliquer pour arroser la plante")
 
+                    DrinkSelectionPanel {addedWater -> addWater(addedWater)}
                 }
 
             }
@@ -71,16 +91,17 @@ class PlantScreen : ComponentActivity() {
 }
 
 @Composable
-fun PlantAndWater(currentWaterQtt: Int) {
+fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically, // Centre verticalement
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween // Plante à gauche, jauge à droite
     ) {
-        PlantImage()
-        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = 1000 , maxGoal = 2300) // Exemple : 75% d'eau bue
+        PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
+        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
     }
 }
 
@@ -141,8 +162,13 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
 
 
 @Composable
-fun PlantImage(){
-    val image = painterResource(id = R.drawable.plant)
+fun PlantImage(currentWaterQtt: Int, minGoal: Int, maxGoal: Int){
+    var image = painterResource(id = R.drawable.plant_healthy)
+    if (currentWaterQtt < minGoal){
+        image = painterResource(id = R.drawable.plant_dry)
+    }else if (currentWaterQtt > maxGoal){
+        image = painterResource(id = R.drawable.plant_overwatered)
+    }
     Image(
         painter = image,
         contentDescription = "Plant",
@@ -189,7 +215,7 @@ fun DrinkSelectionPanel(onDropWater: (Float) -> Unit){
 
 @Composable
 fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
-    var image = when (qtt){
+    val image = when (qtt){
         // A MODIFIER POUR DES INTERVALLES
         50 -> painterResource(id = R.drawable.verre_petit)
         200 -> painterResource(id = R.drawable.verre)
@@ -213,6 +239,19 @@ fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
             text = "$qtt",
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun ResetButtons(empty: () -> Unit, revert : () -> Unit){
+    Row (
+    ){
+        Button(onClick = { empty() }    ) {
+            Text(text = "Vider")
+        }
+        Button(onClick = { revert()}    ) {
+            Text(text = "Annuler")
+        }
     }
 }
 
@@ -283,6 +322,6 @@ fun DragAndDropScreen() {
 @Composable
 fun Glasses() {
 
-    PlantAndWater(1500)
+    PlantAndWater(9000, 1000, 2300)
     //DrinkSelectionPanel()
 }
