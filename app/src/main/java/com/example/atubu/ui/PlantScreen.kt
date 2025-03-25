@@ -29,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.DismissibleDrawerSheet
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,31 +48,91 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.atubu.R
 import kotlinx.coroutines.launch
 
-
-class PlantScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val currentWaterQtt = 1.5f
-        setContent{
-            Surface (
-                modifier = Modifier.fillMaxSize()
-            ) {
-
-                MenuDisplay {
+@Composable
+fun PlantScreen(
+    onNextButtonClicked: () -> Unit = {},
+){
+    val currentWaterQtt = 1.5f
+    Surface (
+        modifier = Modifier.fillMaxSize()
+    )
+    {
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        val image = painterResource(id = R.drawable.friend)
+        ModalNavigationDrawer(
+            drawerContent = {
+                DismissibleDrawerSheet {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        PlantAndWater(currentWaterQtt)
-                        Instructions("Glisser et déposer pour arroser la plante (TODO)")
-                        DrinkSelectionPanel()
+                        Spacer(Modifier.height(12.dp))
+                        Text("Drawer Title", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+
+                        NavigationDrawerItem(
+                            label = { Text("Amis") },
+                            selected = false,
+                            icon = {Icon(
+                                painter = image,
+                                contentDescription = "friend",
+                                modifier = Modifier.size(24.dp)
+                            )},
+
+                            onClick = { /* Handle click */ }
+                        )
+                        NavigationDrawerItem(
+                            label = { Text("Succès") },
+                            selected = false,
+                            icon = { Icon(Icons.Outlined.Star, contentDescription = null) },
+                            onClick = { /* Handle click */ }
+                        )
+
+                        NavigationDrawerItem(
+                            label = { Text("Paramètres") },
+                            selected = false,
+                            icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+
+                            onClick = onNextButtonClicked
+                        )
+
+                        Spacer(Modifier.height(12.dp))
                     }
                 }
-
+            },
+            drawerState = drawerState
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(onClick = {
+                    scope.launch {
+                        if (drawerState.isClosed) {
+                            drawerState.open()
+                        } else {
+                            drawerState.close()
+                        }
+                    }
+                }) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                }
+                // ------------------------- On insère le contenu ici pour qu'il soit visible sous le drawer
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    PlantAndWater(currentWaterQtt)
+                    Instructions("Glisser et déposer pour arroser la plante (TODO)")
+                    DrinkSelectionPanel()
+                }
             }
         }
+
     }
+
 }
+
 
 @Composable
 fun Plant(){
@@ -132,7 +193,7 @@ fun WaterGauge(currentWaterQtt: Float, minGoal : Float, maxGoal : Float) {
                 drawLine(
                     color = Color.Black, // Couleur des marqueurs
                     start = Offset(0f, y),
-                    end = androidx.compose.ui.geometry.Offset(gaugeWidth, y),
+                    end = Offset(gaugeWidth, y),
                     strokeWidth = 4f
                 )
             }
@@ -176,69 +237,6 @@ fun Instructions(text : String){
     )
 }
 
-
-@Composable
-fun MenuDisplay(content: @Composable () -> Unit) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    ModalNavigationDrawer(
-        drawerContent = {
-            DismissibleDrawerSheet {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Spacer(Modifier.height(12.dp))
-                    Text("Drawer Title", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-
-                    Text("Section 1", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
-                    NavigationDrawerItem(
-                        label = { Text("Item 1") },
-                        selected = false,
-                        onClick = { /* Handle click */ }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Item 2") },
-                        selected = false,
-                        onClick = { /* Handle click */ }
-                    )
-
-                    Text("Section 2", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
-                    NavigationDrawerItem(
-                        label = { Text("Settings") },
-                        selected = false,
-                        icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-                        badge = { Text("20") }, // Placeholder
-                        onClick = { /* Handle click */ }
-                    )
-
-                    Spacer(Modifier.height(12.dp))
-                }
-            }
-        },
-        drawerState = drawerState
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconButton(onClick = {
-                scope.launch {
-                    if (drawerState.isClosed) {
-                        drawerState.open()
-                    } else {
-                        drawerState.close()
-                    }
-                }
-            }) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu")
-            }
-
-            content() // On insère le contenu ici pour qu'il soit visible sous le drawer
-        }
-    }
-}
 
 
 @Composable
