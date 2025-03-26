@@ -36,9 +36,11 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.example.atubu.R
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 
@@ -107,6 +109,12 @@ fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
 
 @Composable
 fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+    var color = colorResource(R.color.blue)
+    if(currentWaterQtt < minGoal){
+        color = colorResource(R.color.yellow_dry)
+    }else if (currentWaterQtt > maxGoal){
+        color = colorResource(R.color.brown_overwatered)
+    }
     val maxHeight = 400.dp // Hauteur max de la jauge
     val maxCapacity = 3000 // Capacité maximale = 3L
     val filledHeight = maxHeight * (currentWaterQtt.toFloat() / maxCapacity.toFloat()).coerceIn(0f, 1f)
@@ -124,7 +132,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(filledHeight) // La jauge se remplit selon "progress"
-                .background(Color.Blue, RoundedCornerShape(12.dp))
+                .background(color, RoundedCornerShape(12.dp))
                 .align(Alignment.BottomCenter) // L'eau monte depuis le bas
         )
         {
