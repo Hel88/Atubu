@@ -25,9 +25,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        dataAccessObject = DataAccessObject(applicationContext)
-        helloView = findViewById(R.id.HelloDisplay)
-        helloView.text = dataAccessObject.incrementTest()
+//        dataAccessObject = DataAccessObject(applicationContext)
+//        helloView = findViewById(R.id.HelloDisplay)
+//        helloView.text = dataAccessObject.incrementTest()
 
     }
 }
