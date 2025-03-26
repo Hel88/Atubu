@@ -81,8 +81,7 @@ fun PlantScreen(
                     PlantAndWater(currentWaterQtt, minGoal, maxGoal)
                     ResetButtons({ emptyGauge() }, {revertAction()})
                     Instructions("Glisser et déposer pour arroser la plante (TODO)")
-                    DrinkSelectionPanel { addedWater ->
-                        currentWaterQtt = (currentWaterQtt+addedWater).toInt() // Ajoute la quantité d'eau à la jauge
+                    DrinkSelectionPanel { addedWater -> addWater(addedWater) // Ajoute la quantité d'eau à la jauge
                     }
 
                 }
