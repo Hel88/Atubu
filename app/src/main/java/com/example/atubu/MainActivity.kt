@@ -24,9 +24,9 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        dataAccessObject = DataAccessObject(applicationContext)
+        dataAccessObject = DataAccessObject.getDAO(applicationContext)
         helloView = findViewById(R.id.HelloDisplay)
-        helloView.text = dataAccessObject.incrementTest()
+        helloView.text = dataAccessObject.roomTest()
 
     }
 }

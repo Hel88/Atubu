@@ -13,10 +13,10 @@ interface InterfaceDaoRoom {
     fun insertAll(vararg newDay : Day)
 
     @Query("SELECT * FROM calendar WHERE date == (:currentDate)")
-    fun getDate(currentDate : Day);
+    fun getDay(currentDate : Date) : List<Day>
 
     @Query("SELECT * FROM calendar WHERE date <= (:end) AND date >= (:begin)")
-    fun getAllBetween(begin : Date, end : Date) : List<Day>
+    fun getAllDaysBetween(begin : Date, end : Date) : List<Day>
 
 
 }
