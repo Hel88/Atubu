@@ -119,7 +119,7 @@ fun NavDrawer(){
 
 @Composable
 fun AtubuApp(
-    viewModel: PlantViewModel = viewModel(),
+
     navController : NavHostController = rememberNavController()
 ){
 
