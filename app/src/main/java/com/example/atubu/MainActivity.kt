@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.atubu.dataInterface.DataAccessObject
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,7 +28,9 @@ class MainActivity : AppCompatActivity() {
 
         dataAccessObject = DataAccessObject.getDAO(applicationContext)
         helloView = findViewById(R.id.HelloDisplay)
+        GlobalScope.launch {
         helloView.text = dataAccessObject.roomTest()
 
+        }
     }
 }
