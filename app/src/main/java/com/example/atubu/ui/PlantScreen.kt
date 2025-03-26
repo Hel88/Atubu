@@ -1,5 +1,6 @@
 package com.example.atubu.ui
 
+import android.app.AlertDialog
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +38,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.example.atubu.R
@@ -42,52 +47,89 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-fun PlantScreen(
-
-){
+fun PlantScreen(){
     var minGoal = 1000
     var maxGoal = 2300
-    val currentWaterQtt = 1.5f
-    Surface (
-        modifier = Modifier.fillMaxSize()
-    )
-    {
 
-        var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
-        var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
+    var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
+    var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
-        fun addWater(addedWater: Float) {
-            currentWaterQtt = (currentWaterQtt + addedWater).toInt()
-            history = history + addedWater.toInt() // ajout à l'historique
-        }
+    var showDialog by remember { mutableStateOf(false) }
+    var customGlassQtt by remember { mutableStateOf(0) }
+    var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500, 100)) }
 
-        fun emptyGauge(){
-            currentWaterQtt = 0
-        }
-        fun revertAction(){
-            if (history.isNotEmpty()){
-                currentWaterQtt -= history.last()
-                history = history.dropLast(1)
-            }
-        }
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    PlantAndWater(currentWaterQtt, minGoal, maxGoal)
-                    ResetButtons({ emptyGauge() }, {revertAction()})
-                    Instructions("Glisser et déposer pour arroser la plante (TODO)")
-                    DrinkSelectionPanel { addedWater -> addWater(addedWater) // Ajoute la quantité d'eau à la jauge
-                    }
+    fun addWater(addedWater: Float) {
+        currentWaterQtt = (currentWaterQtt + addedWater).toInt()
+        history = history + addedWater.toInt() // ajout à l'historique
+    }
 
-                }
-            }   
+    fun emptyGauge(){
+        currentWaterQtt = 0
+    }
+    fun revertAction(){
+        if (history.isNotEmpty()){
+            currentWaterQtt -= history.last()
+            history = history.dropLast(1)
         }
     }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.End
+        ) {
+            PlantAndWater(currentWaterQtt, minGoal, maxGoal)
+            ResetButtons({ emptyGauge() }, {revertAction()})
+            }
+        Column (
+            modifier = Modifier.padding(bottom = 16.dp), // Ajoute un peu d'espace en bas
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Instructions("Cliquer pour arroser la plante")
+            DrinkSelectionPanel (glassesQuantities, onDropWater ={ addedWater -> addWater(addedWater)}, showDialog ={showDialog = true})// Ajoute la quantité d'eau à la jauge
+            }
+        }
+
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Ajouter un verre personnalisé") },
+            text = {
+                Column {
+                    Text("Entrez la quantité en ml :")
+                    OutlinedTextField(
+                        value = customGlassQtt.toString(),
+                        onValueChange = { text ->
+                            customGlassQtt = text.toIntOrNull() ?: 0
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (customGlassQtt > 0) {
+                        glassesQuantities = glassesQuantities + customGlassQtt
+                        showDialog = false
+                    }
+                }) {
+                    Text("Ajouter")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
+    }
+}
+
 
 
 
@@ -199,8 +241,8 @@ fun Instructions(text : String){
 
 
 @Composable
-fun DrinkSelectionPanel(onDropWater: (Float) -> Unit){
-    val glassesQuantities = intArrayOf(50, 200, 300, 200, 100)
+fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit){
+    //val glassesQuantities = intArrayOf(50, 200, 500, 200, 100)
 
     Row (
         Modifier
@@ -212,25 +254,26 @@ fun DrinkSelectionPanel(onDropWater: (Float) -> Unit){
             )
             //.height(30.dp)
                 ,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ){
 
 
-        for (qtt in glassesQuantities){
+        for (qtt in glasses){
             GlassIcon(qtt){ amount -> onDropWater(amount) }
         }
+
+        Button(onClick = showDialog) { Text(text = "+")}
+
     }
 }
 
 @Composable
 fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
-    val image = when (qtt){
-        // A MODIFIER POUR DES INTERVALLES
-        50 -> painterResource(id = R.drawable.verre_petit)
-        200 -> painterResource(id = R.drawable.verre)
-        300 -> painterResource(id = R.drawable.gourde)
-        else -> painterResource(id = R.drawable.verre)
-    }
+
+    var image =painterResource(id = R.drawable.verre_petit)
+    if (qtt >50 && qtt<=300){image =painterResource(id = R.drawable.verre)}
+    if (qtt>300){image =painterResource(id = R.drawable.gourde)}
 
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
