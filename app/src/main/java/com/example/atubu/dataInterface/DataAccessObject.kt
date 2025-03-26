@@ -1,21 +1,20 @@
-package com.example.atubu
+package com.example.atubu.dataInterface
 
 import android.content.Context
-import android.content.SharedPreferences
 
 class DataAccessObject(private val context : Context) {
-    fun saveValue(date: String, value: String) {
+    fun saveValue(key: String, value: String) {
         val sharedPref = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
-            putString(date, value)
+            putString(key, value)
             apply()
         }
     }
 
-    public fun getValue(date : String) : String{
+    public fun getValue(key : String) : String{
         val sharedPref = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         val defaultValue = "Not found"
-        val dataValue = sharedPref.getString(date, defaultValue)?: defaultValue
+        val dataValue = sharedPref.getString(key, defaultValue)?: defaultValue
         return dataValue
     }
 
@@ -33,4 +32,6 @@ class DataAccessObject(private val context : Context) {
             return retVal
         }
     }
+
+
 }
