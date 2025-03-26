@@ -1,8 +1,5 @@
 package com.example.atubu.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,17 +18,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
@@ -41,56 +38,60 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.example.atubu.R
 import kotlin.math.min
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@Composable
+fun PlantScreen(
 
-class PlantScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        var minGoal = 1000
-        var maxGoal = 2300
+){
+    var minGoal = 1000
+    var maxGoal = 2300
+    val currentWaterQtt = 1.5f
+    Surface (
+        modifier = Modifier.fillMaxSize()
+    )
+    {
 
-        setContent{
-            var currentWaterQtt by remember { mutableIntStateOf(0) }
+        var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
+        var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
-            var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
+        fun addWater(addedWater: Float) {
+            currentWaterQtt = (currentWaterQtt + addedWater).toInt()
+            history = history + addedWater.toInt() // ajout à l'historique
+        }
 
-            fun addWater(addedWater: Float) {
-                currentWaterQtt = (currentWaterQtt + addedWater).toInt()
-                history = history + addedWater.toInt() // ajout à l'historique
-            }
-
-            fun emptyGauge(){
-                currentWaterQtt = 0
-            }
-            fun revertAction(){
-                if (history.isNotEmpty()){
-                    currentWaterQtt -= history.last()
-                    history = history.dropLast(1)
-                }
-            }
-
-
-            Surface (
-                modifier = Modifier.fillMaxSize()
-            ) {
-
-                Column (
-                    verticalArrangement = Arrangement.Center
-                ){
-
-                    PlantAndWater(currentWaterQtt, minGoal, maxGoal)
-                    ResetButtons({ emptyGauge() }, {revertAction()})
-
-                    Instructions("Cliquer pour arroser la plante")
-
-                    DrinkSelectionPanel {addedWater -> addWater(addedWater)}
-                }
-
+        fun emptyGauge(){
+            currentWaterQtt = 0
+        }
+        fun revertAction(){
+            if (history.isNotEmpty()){
+                currentWaterQtt -= history.last()
+                history = history.dropLast(1)
             }
         }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    PlantAndWater(currentWaterQtt, minGoal, maxGoal)
+                    ResetButtons({ emptyGauge() }, {revertAction()})
+                    Instructions("Glisser et déposer pour arroser la plante (TODO)")
+                    DrinkSelectionPanel { addedWater ->
+                        currentWaterQtt = (currentWaterQtt+addedWater).toInt() // Ajoute la quantité d'eau à la jauge
+                    }
+
+                }
+            }   
+        }
     }
-}
+
+
+
 
 @Composable
 fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
@@ -158,8 +159,8 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
 
                 drawLine(
                     color = Color.Black, // Couleur des marqueurs
-                    start = androidx.compose.ui.geometry.Offset(0f, y),
-                    end = androidx.compose.ui.geometry.Offset(gaugeWidth, y),
+                    start = Offset(0f, y),
+                    end = Offset(gaugeWidth, y),
                     strokeWidth = 4f
                 )
             }
@@ -195,6 +196,7 @@ fun Instructions(text : String){
 
     )
 }
+
 
 
 @Composable
