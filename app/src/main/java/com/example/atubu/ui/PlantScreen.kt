@@ -1,8 +1,6 @@
 package com.example.atubu.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.app.AlertDialog
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,71 +19,144 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.example.atubu.R
+import kotlin.math.min
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@Composable
+fun PlantScreen(){
+    var minGoal = 1000
+    var maxGoal = 2300
 
-class PlantScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent{
-            var currentWaterQtt by remember { mutableIntStateOf(0) }
-            Surface (
-                modifier = Modifier.fillMaxSize()
-            ) {
+    var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
+    var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
-                Column (
-                    verticalArrangement = Arrangement.Center
+    var showDialog by remember { mutableStateOf(false) }
+    var customGlassQtt by remember { mutableStateOf(0) }
+    var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500, 100)) }
 
-                ){
+    fun addWater(addedWater: Float) {
+        currentWaterQtt = (currentWaterQtt + addedWater).toInt()
+        history = history + addedWater.toInt() // ajout à l'historique
+    }
 
-                    PlantAndWater(currentWaterQtt)
-                    Instructions("Glisser et déposer pour arroser la plante (TODO)")
+    fun emptyGauge(){
+        currentWaterQtt = 0
+    }
+    fun revertAction(){
+        if (history.isNotEmpty()){
+            currentWaterQtt -= history.last()
+            history = history.dropLast(1)
+        }
+    }
 
-                    DrinkSelectionPanel { addedWater ->
-                        currentWaterQtt = (currentWaterQtt+addedWater).toInt() // Ajoute la quantité d'eau à la jauge
-                    }
-
-                }
-
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.End
+        ) {
+            PlantAndWater(currentWaterQtt, minGoal, maxGoal)
+            ResetButtons({ emptyGauge() }, {revertAction()})
+            }
+        Column (
+            modifier = Modifier.padding(bottom = 16.dp), // Ajoute un peu d'espace en bas
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Instructions("Cliquer pour arroser la plante")
+            DrinkSelectionPanel (glassesQuantities, onDropWater ={ addedWater -> addWater(addedWater)}, showDialog ={showDialog = true})// Ajoute la quantité d'eau à la jauge
             }
         }
+
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Ajouter un verre personnalisé") },
+            text = {
+                Column {
+                    Text("Entrez la quantité en ml :")
+                    OutlinedTextField(
+                        value = customGlassQtt.toString(),
+                        onValueChange = { text ->
+                            customGlassQtt = text.toIntOrNull() ?: 0
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (customGlassQtt > 0) {
+                        glassesQuantities = glassesQuantities + customGlassQtt
+                        showDialog = false
+                    }
+                }) {
+                    Text("Ajouter")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
     }
 }
 
+
+
+
+
 @Composable
-fun PlantAndWater(currentWaterQtt: Int) {
+fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically, // Centre verticalement
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween // Plante à gauche, jauge à droite
     ) {
-        PlantImage()
-        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = 1000 , maxGoal = 2300) // Exemple : 75% d'eau bue
+        PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
+        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
     }
 }
 
 @Composable
 fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+    var color = colorResource(R.color.blue)
+    if(currentWaterQtt < minGoal){
+        color = colorResource(R.color.yellow_dry)
+    }else if (currentWaterQtt > maxGoal){
+        color = colorResource(R.color.brown_overwatered)
+    }
     val maxHeight = 400.dp // Hauteur max de la jauge
     val maxCapacity = 3000 // Capacité maximale = 3L
     val filledHeight = maxHeight * (currentWaterQtt.toFloat() / maxCapacity.toFloat()).coerceIn(0f, 1f)
@@ -103,7 +174,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(filledHeight) // La jauge se remplit selon "progress"
-                .background(Color.Blue, RoundedCornerShape(12.dp))
+                .background(color, RoundedCornerShape(12.dp))
                 .align(Alignment.BottomCenter) // L'eau monte depuis le bas
         )
         {
@@ -129,8 +200,8 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
 
                 drawLine(
                     color = Color.Black, // Couleur des marqueurs
-                    start = androidx.compose.ui.geometry.Offset(0f, y),
-                    end = androidx.compose.ui.geometry.Offset(gaugeWidth, y),
+                    start = Offset(0f, y),
+                    end = Offset(gaugeWidth, y),
                     strokeWidth = 4f
                 )
             }
@@ -141,8 +212,13 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
 
 
 @Composable
-fun PlantImage(){
-    val image = painterResource(id = R.drawable.plant)
+fun PlantImage(currentWaterQtt: Int, minGoal: Int, maxGoal: Int){
+    var image = painterResource(id = R.drawable.plant_healthy)
+    if (currentWaterQtt < minGoal){
+        image = painterResource(id = R.drawable.plant_dry)
+    }else if (currentWaterQtt > maxGoal){
+        image = painterResource(id = R.drawable.plant_overwatered)
+    }
     Image(
         painter = image,
         contentDescription = "Plant",
@@ -163,9 +239,10 @@ fun Instructions(text : String){
 }
 
 
+
 @Composable
-fun DrinkSelectionPanel(onDropWater: (Float) -> Unit){
-    val glassesQuantities = intArrayOf(50, 200, 300, 200, 100)
+fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit){
+    //val glassesQuantities = intArrayOf(50, 200, 500, 200, 100)
 
     Row (
         Modifier
@@ -177,25 +254,26 @@ fun DrinkSelectionPanel(onDropWater: (Float) -> Unit){
             )
             //.height(30.dp)
                 ,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ){
 
 
-        for (qtt in glassesQuantities){
+        for (qtt in glasses){
             GlassIcon(qtt){ amount -> onDropWater(amount) }
         }
+
+        Button(onClick = showDialog) { Text(text = "+")}
+
     }
 }
 
 @Composable
 fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
-    var image = when (qtt){
-        // A MODIFIER POUR DES INTERVALLES
-        50 -> painterResource(id = R.drawable.verre_petit)
-        200 -> painterResource(id = R.drawable.verre)
-        300 -> painterResource(id = R.drawable.gourde)
-        else -> painterResource(id = R.drawable.verre)
-    }
+
+    var image =painterResource(id = R.drawable.verre_petit)
+    if (qtt >50 && qtt<=300){image =painterResource(id = R.drawable.verre)}
+    if (qtt>300){image =painterResource(id = R.drawable.gourde)}
 
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -213,6 +291,19 @@ fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
             text = "$qtt",
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun ResetButtons(empty: () -> Unit, revert : () -> Unit){
+    Row (
+    ){
+        Button(onClick = { empty() }    ) {
+            Text(text = "Vider")
+        }
+        Button(onClick = { revert()}    ) {
+            Text(text = "Annuler")
+        }
     }
 }
 
@@ -283,6 +374,6 @@ fun DragAndDropScreen() {
 @Composable
 fun Glasses() {
 
-    PlantAndWater(1500)
+    PlantAndWater(9000, 1000, 2300)
     //DrinkSelectionPanel()
 }
