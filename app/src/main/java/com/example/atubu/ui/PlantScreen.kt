@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
@@ -67,7 +68,7 @@ fun PlantScreen(){
 
 
     var showDialog by remember { mutableStateOf(false) }
-    var customGlassQtt by remember { mutableStateOf(0) }
+    var customGlassQtt by remember { mutableIntStateOf(0) }
     var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500, 100)) }
 
     fun addWater(addedWater: Float) {
@@ -82,6 +83,15 @@ fun PlantScreen(){
         if (history.isNotEmpty()){
             currentWaterQtt -= history.last()
             history = history.dropLast(1)
+        }
+    }
+
+    fun suppressGlass(quantity : Int){
+        println("suppress $quantity")
+        if (quantity in glassesQuantities){
+            glassesQuantities = glassesQuantities - quantity
+        }else{
+            println("$quantity not in list of glasses")
         }
     }
 
@@ -102,12 +112,17 @@ fun PlantScreen(){
             verticalArrangement = Arrangement.Bottom
         ) {
             Instructions("Cliquer pour arroser la plante")
-            DrinkSelectionPanel (glassesQuantities, onDropWater ={ addedWater -> addWater(addedWater)}, showDialog ={showDialog = true})// Ajoute la quantité d'eau à la jauge
+            DrinkSelectionPanel (
+                glassesQuantities,
+                onDropWater ={ addedWater -> addWater(addedWater)},
+                showDialog ={showDialog = true},
+                suppressGlass = {quantity -> suppressGlass(quantity) })
             }
         }
 
 
     if (showDialog) {
+        var errorMessage by remember { mutableStateOf(false) } // Message d'erreur
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Ajouter un verre personnalisé") },
@@ -121,13 +136,19 @@ fun PlantScreen(){
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                     )
+                    if (errorMessage) {
+                        Text("Quantité invalide")
+                    }
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    if (customGlassQtt > 0) {
+                    if (customGlassQtt > 0 && customGlassQtt !in glassesQuantities) {
                         glassesQuantities = glassesQuantities + customGlassQtt
+                        errorMessage = false
                         showDialog = false
+                    }else{
+                        errorMessage = true
                     }
                 }) {
                     Text("Ajouter")
@@ -190,18 +211,13 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
                 .align(Alignment.BottomCenter) // L'eau monte depuis le bas
         )
         {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(20.dp)
-//                    .background(color, RoundedCornerShape(12.dp))
-//            ){}
+
             // Le texte au-dessus de la box bleue
             if (textDisplayedSetting){
                 Text(
                     text = "${(currentWaterQtt)}",
                     color = Color.White,
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.TopCenter) // Aligne le texte en haut au centre
@@ -281,8 +297,9 @@ fun Instructions(text : String){
 
 
 @Composable
-fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit){
+fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit, suppressGlass: (Int) -> Unit){
     //val glassesQuantities = intArrayOf(50, 200, 500, 200, 100)
+    var supressMode by remember { mutableStateOf(false) }
 
     Row (
         Modifier
@@ -300,16 +317,49 @@ fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showD
 
 
         for (qtt in glasses){
-            GlassIcon(qtt){ amount -> onDropWater(amount) }
+            Box(
+
+            ){
+                GlassIcon(qtt, supressMode){ amount -> onDropWater(amount) }
+
+                if (supressMode){
+
+                    Button(
+                        modifier = Modifier
+                            .alpha(0.9f)
+                            .align(Alignment.Center)
+                            .width(80.dp)
+                        ,
+                        onClick = { suppressGlass(qtt) }
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.delete_icon),
+                            contentDescription = "Icone supprimer"
+                        )
+                    }
+                }
+            }
+
         }
 
-        Button(onClick = showDialog) { Text(text = "+")}
+
+        Column {
+
+        if (!supressMode){
+
+        Button(onClick = showDialog) { Text(text = "+", fontSize = 20.sp)}
+            Button(onClick = { supressMode = true }) { Text(text = "-", fontSize = 20.sp)}
+        }else{
+            Button(onClick = { supressMode = false }) { Text(text = "ok")}
+
+        }
+        }
 
     }
 }
 
 @Composable
-fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
+fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
 
     var image =painterResource(id = R.drawable.verre_petit)
     if (qtt >50 && qtt<=300){image =painterResource(id = R.drawable.verre)}
@@ -318,7 +368,9 @@ fun GlassIcon(qtt : Int, onDropWater: (Float) -> Unit){
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable {
-            onDropWater(qtt.toFloat()) // Ajoute la quantité d'eau en cliquant
+            if (!supressMode){
+                onDropWater(qtt.toFloat()) // Ajoute la quantité d'eau en cliquant
+            }
         }
     ){
         Image(
