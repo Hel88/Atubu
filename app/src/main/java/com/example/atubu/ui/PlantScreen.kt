@@ -38,9 +38,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.sp
 import com.example.atubu.R
 import kotlin.math.min
 import kotlinx.coroutines.launch
@@ -48,11 +55,16 @@ import kotlin.math.roundToInt
 
 @Composable
 fun PlantScreen(){
+
+    // PARAMETRES
     var minGoal = 1000
     var maxGoal = 2300
+    val textDisplayedSetting = true
+    // ----------
 
     var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
     var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
+
 
     var showDialog by remember { mutableStateOf(false) }
     var customGlassQtt by remember { mutableStateOf(0) }
@@ -82,7 +94,7 @@ fun PlantScreen(){
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.End
         ) {
-            PlantAndWater(currentWaterQtt, minGoal, maxGoal)
+            PlantAndWater(currentWaterQtt, minGoal, maxGoal, textDisplayedSetting)
             ResetButtons({ emptyGauge() }, {revertAction()})
             }
         Column (
@@ -135,7 +147,7 @@ fun PlantScreen(){
 
 
 @Composable
-fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSetting : Boolean) {
 
     Row(
         modifier = Modifier
@@ -145,12 +157,12 @@ fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
         horizontalArrangement = Arrangement.SpaceBetween // Plante à gauche, jauge à droite
     ) {
         PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
-        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
+        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal, textDisplayedSetting)
     }
 }
 
 @Composable
-fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
+fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSetting : Boolean) {
     var color = colorResource(R.color.blue)
     if(currentWaterQtt < minGoal){
         color = colorResource(R.color.yellow_dry)
@@ -178,19 +190,30 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
                 .align(Alignment.BottomCenter) // L'eau monte depuis le bas
         )
         {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(20.dp)
+//                    .background(color, RoundedCornerShape(12.dp))
+//            ){}
             // Le texte au-dessus de la box bleue
-            Text(
-                text = "${(currentWaterQtt)} ml",
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.TopCenter) // Aligne le texte en haut au centre
-                    .padding(top = 2.dp) // Ajoute de l'espace entre le texte et la box bleue
-            )
+            if (textDisplayedSetting){
+                Text(
+                    text = "${(currentWaterQtt)}",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter) // Aligne le texte en haut au centre
+                        .padding(top = 2.dp) // Ajoute de l'espace entre le texte et la box bleue
+                )
+
+            }
         }
 
 
         // marqueurs d'objectifs
+        val textMeasurer = rememberTextMeasurer()
         Canvas(modifier = Modifier.fillMaxSize()) {
             val gaugeHeight = size.height
             val gaugeWidth = size.width
@@ -199,11 +222,28 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int) {
                 val y = gaugeHeight * (1 - position) // Convertir en coordonnée Y
 
                 drawLine(
-                    color = Color.Black, // Couleur des marqueurs
+                    color = Color.DarkGray, // Couleur des marqueurs
                     start = Offset(0f, y),
                     end = Offset(gaugeWidth, y),
                     strokeWidth = 4f
                 )
+
+                if (textDisplayedSetting){
+                    // texte avec la quantité au dessus de la ligne
+                    val textLayoutResult: TextLayoutResult =
+                        textMeasurer.measure(
+                            text = AnnotatedString( "${(position * maxCapacity).toInt()} mL"),
+                            style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                        )
+
+                    val textOffsetX = 5.0f   // à gauche
+                    val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
+                    drawText(
+                        textLayoutResult = textLayoutResult,
+                        topLeft = Offset(textOffsetX, textOffsetY)
+                    )
+                }
+
             }
         }
     }
@@ -374,6 +414,7 @@ fun DragAndDropScreen() {
 @Composable
 fun Glasses() {
 
-    PlantAndWater(9000, 1000, 2300)
+    //PlantAndWater(9000, 1000, 2300)
     //DrinkSelectionPanel()
+    WaterGauge(200, 1000,2100, true)
 }
