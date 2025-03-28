@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.sql.Date
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.random.Random
@@ -11,7 +13,10 @@ import kotlin.random.Random
 class DataAccessObject(private val context : Context) {
 
 
-    private val database : AppDatabase  = AppDatabase.getDatabase(context)
+    private val database : AppDatabase  = Room.databaseBuilder(
+        context, AppDatabase::class.java,
+        "app_database"
+    ).build()
 
     private  val roomDAO : InterfaceDaoRoom = database.interfaceDaoRoom()
 
@@ -46,17 +51,20 @@ class DataAccessObject(private val context : Context) {
     }
 
 
-    public fun roomTest() : String{
+    public suspend fun roomTest() : String{
         val newday : Day = Day(
             date = Date(ThreadLocalRandom.current().nextInt() * 1000L),
             waterDrunkL = Random.nextFloat(),
             plantState = Random.nextInt(0,100)
         );
+        val lst : List<Day>
+        withContext(Dispatchers.IO) {
+            roomDAO.insertAll(newday);
+            lst = roomDAO.getAllDaysBetween(Date(Long.MIN_VALUE), Date(Long.MAX_VALUE))
 
-        roomDAO.insertAll(newday);
-        val lst = roomDAO.getAllDaysBetween(Date(Long.MIN_VALUE), Date(Long.MAX_VALUE))
-        return lst.joinToString(separator = "\n"){
-            day ->"Date: ${day.date}, Drunk: ${day.waterDrunkL}, State: ${day.plantState}/5"
+        }
+        return lst.joinToString(separator = "\n") { day ->
+            "Date: ${day.date}, Drunk: ${day.waterDrunkL}, State: ${day.plantState}"
         }
     }
 
