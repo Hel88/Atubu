@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.theme.CupcakeTheme
 
 class MainActivity : AppCompatActivity() {
