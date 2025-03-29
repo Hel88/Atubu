@@ -1,9 +1,6 @@
 package com.example.atubu
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,25 +31,23 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import com.example.atubu.ui.PlantScreen
 import com.example.atubu.ui.PlantViewModel
 import com.example.atubu.ui.StartSettingScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import com.example.atubu.ui.Friend
+import com.example.atubu.ui.ComingSoonScreen
+
 
 
 /**
@@ -60,8 +55,9 @@ import kotlinx.coroutines.launch
  */
 enum class AtubuScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
-    Setting(title = R.string.setting)
-
+    Setting(title = R.string.setting),
+    Friend(title=R.string.friend),
+    Success(title = R.string.success)
 }
 
 /**
@@ -143,14 +139,14 @@ fun AtubuApp(
                     NavigationDrawerItem(
                         label = { Text("Amis") },
                         selected = false,
-                        icon = { Icon(painter = image, contentDescription = "friend") },
-                        onClick = { /* Handle click */ }
+                        icon = { Icon(painter = image, contentDescription = "friend", modifier = Modifier.size(24.dp)) },
+                        onClick = { navController.navigate(AtubuScreen.Friend.name)}
                     )
                     NavigationDrawerItem(
                         label = { Text("Succès") },
                         selected = false,
                         icon = { Icon(Icons.Outlined.Star, contentDescription = null) },
-                        onClick = { /* Handle click */ }
+                        onClick = { navController.navigate(AtubuScreen.Success.name)}
                     )
                     NavigationDrawerItem(
                         label = { Text("Paramètres") },
@@ -193,6 +189,13 @@ fun AtubuApp(
                         modifier = Modifier.fillMaxHeight()
                     )
                 }
+                composable(route = AtubuScreen.Friend.name) {
+                    Friend()
+                }
+                composable(route = AtubuScreen.Success.name) {
+                    ComingSoonScreen()
+                }
+
 
             }
         }
