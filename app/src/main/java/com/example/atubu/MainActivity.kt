@@ -12,6 +12,9 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.theme.CupcakeTheme
 import kotlin.jvm.java
 import android.app.PendingIntent
