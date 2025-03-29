@@ -1,6 +1,7 @@
 package com.example.atubu.ui
 
 import android.app.AlertDialog
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.atubu.R
+import com.example.atubu.dataInterface.PreferenceHelper
 import kotlin.math.min
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -58,8 +61,6 @@ import kotlin.math.roundToInt
 fun PlantScreen(){
 
     // PARAMETRES
-    var minGoal = 1000
-    var maxGoal = 2300
     val textDisplayedSetting = true
     // ----------
 
@@ -104,7 +105,8 @@ fun PlantScreen(){
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.End
         ) {
-            PlantAndWater(currentWaterQtt, minGoal, maxGoal, textDisplayedSetting)
+            val context = LocalContext.current // Récupérer le contexte dans un composable
+            PlantAndWater(currentWaterQtt, PreferenceHelper.getMin(context), PreferenceHelper.getMax(context), textDisplayedSetting)
             ResetButtons({ emptyGauge() }, {revertAction()})
             }
         Column (
@@ -193,6 +195,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
     val maxHeight = 400.dp // Hauteur max de la jauge
     val maxCapacity = 3000 // Capacité maximale = 3L
     val filledHeight = maxHeight * (currentWaterQtt.toFloat() / maxCapacity.toFloat()).coerceIn(0f, 1f)
+    val context = LocalContext.current // Récupérer le contexte dans un composable
 
     val markerPositions = listOf(minGoal, maxGoal) // Marqueurs
         .map { it.toFloat() / maxCapacity.toFloat() } // Convertir en % de la jauge
@@ -213,7 +216,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
         {
 
             // Le texte au-dessus de la box bleue
-            if (textDisplayedSetting){
+            if (PreferenceHelper.getBool(context)){
                 Text(
                     text = "${(currentWaterQtt)}",
                     color = Color.White,
@@ -244,7 +247,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
                     strokeWidth = 4f
                 )
 
-                if (textDisplayedSetting){
+                if (PreferenceHelper.getBool(context)){
                     // texte avec la quantité au dessus de la ligne
                     val textLayoutResult: TextLayoutResult =
                         textMeasurer.measure(

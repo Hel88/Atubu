@@ -31,10 +31,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.content.Intent
 import android.content.Context
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import com.example.atubu.R
+import com.example.atubu.dataInterface.PreferenceHelper
 
 
 @Preview
@@ -179,7 +183,12 @@ fun NotifPart() {
 @Composable
 fun HydratPart() {
     var checked by remember { mutableStateOf(true) }
+    val context = LocalContext.current // Récupérer le contexte dans un composable
 
+    // Charger la valeur enregistrée
+    LaunchedEffect(Unit) {
+        checked = PreferenceHelper.getBool(context)
+    }
 
     Column(){
         Text(text = "Hydratation", fontSize = 30.sp)
@@ -192,14 +201,36 @@ fun HydratPart() {
             checked = checked,
             onCheckedChange = {
                 checked = it
+                PreferenceHelper.setBool(context,checked)
             }
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text("Afficher les quantités d'eau",fontSize = 15.sp)
     }
     var selectedReminderType by remember { mutableStateOf("regular")}
+    var textValueMin by remember { mutableStateOf("") }
+    var textValueMax by remember { mutableStateOf("") }
+    var showDialogMin by remember { mutableStateOf(false) }
+    var showDialogMax by remember { mutableStateOf(false) }
+
     Column()
     {
+
+        MyAlertDialogMin(
+            showDialogMin = showDialogMin,
+            onDismiss = { showDialogMin = false },
+            onConfirm = {
+                showDialogMin = false
+            }
+        )
+        MyAlertDialogMax(
+            showDialogMax = showDialogMax,
+            onDismiss = { showDialogMax = false },
+            onConfirm = {
+                showDialogMax = false
+            }
+        )
+
         Column(){
             Text(text = "Unité de mesure", fontSize = 25.sp)
         }
@@ -247,8 +278,19 @@ fun HydratPart() {
             )
 
             TextField(
-                value = "1.3L",
-                onValueChange = { },
+                value = textValueMin,
+                onValueChange = { newText ->
+                    textValueMin = newText // Met à jour l'affichage du TextField
+                    if(textValueMin.toInt() > PreferenceHelper.getMax(context)){
+                        showDialogMin = true
+                    }
+                    else {
+                        newText.toIntOrNull()?.let { newValue ->  // Convertir en Int si possible
+                            PreferenceHelper.setMin(context, newValue) // Stocker dans SharedPreferences
+                        }
+                    }
+
+                },
                 modifier = Modifier
                     .width(65.dp) // Boîte plus compacte
                     .height(50.dp), // Hauteur réduite
@@ -269,9 +311,20 @@ fun HydratPart() {
                 modifier = Modifier.weight(1f) // Permet un grand espace
             )
 
+
             TextField(
-                value = "2L",
-                onValueChange = { },
+                value = textValueMax,
+                onValueChange = { newText ->
+                    textValueMax = newText // Met à jour l'affichage du TextField
+                    if(textValueMax.toInt() < PreferenceHelper.getMin(context)){
+                        showDialogMax = true
+                    }
+                    else {
+                        newText.toIntOrNull()?.let { newValue ->  // Convertir en Int si possible
+                            PreferenceHelper.setMax(context, newValue) // Stocker dans SharedPreferences
+                        }
+                    }
+                },
                 modifier = Modifier
                     .width(65.dp) // Boîte plus compacte
                     .height(50.dp), // Hauteur réduite
@@ -279,6 +332,37 @@ fun HydratPart() {
                 singleLine = true
             )
         }
+    }
+}
+
+@Composable
+fun MyAlertDialogMin(showDialogMin: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    if (showDialogMin) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() }, // Quand on clique à l'extérieur
+            title = { Text("Erreur") },
+            text = { Text("Vous ne pouvez pas entrer une quantité min supérieure à max") },
+            confirmButton = {
+                Button(onClick = { onConfirm() }) {
+                    Text("ok")
+                }
+            },
+        )
+    }
+}
+@Composable
+fun MyAlertDialogMax(showDialogMax: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    if (showDialogMax) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() }, // Quand on clique à l'extérieur
+            title = { Text("Erreur") },
+            text = { Text("Vous ne pouvez pas entrer une quantité max inférieur à min") },
+            confirmButton = {
+                Button(onClick = { onConfirm() }) {
+                    Text("ok")
+                }
+            },
+        )
     }
 }
 
