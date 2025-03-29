@@ -57,7 +57,8 @@ dependencies {
 
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
-
+    //dependencies for coroutines used for accessing to room
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
 
 
     implementation("androidx.activity:activity-compose:1.7.2")
