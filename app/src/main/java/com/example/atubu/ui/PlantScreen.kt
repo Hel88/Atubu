@@ -267,7 +267,7 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
                         // texte avec la quantité au dessus de la ligne
                         val textLayoutResult: TextLayoutResult =
                             textMeasurer.measure(
-                                text = AnnotatedString( "%.2f gal Imp".format({(position * maxCapacity/4546).toFloat()})),
+                                text = AnnotatedString( "%.2f gal Imp".format((position * maxCapacity/4546).toFloat())),
                                 style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
                             )
 
@@ -401,20 +401,23 @@ fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
             modifier = Modifier
                 .size(100.dp)
         )
-        if(PreferenceHelper.getSys(context)){
-            Text(
-                text = "$qtt",
-                textAlign = TextAlign.Center
-            )
-        }
-        else{
-            val imp = qtt/4546
-            Text(
-                text = "$imp",
-                textAlign = TextAlign.Center
-            )
-        }
-
+        Text(
+            text = "$qtt",
+            textAlign = TextAlign.Center
+        )
+//        if(PreferenceHelper.getSys(context)){
+//            Text(
+//                text = "$qtt",
+//                textAlign = TextAlign.Center
+//            )
+//        }
+//        else{
+//            val imp = qtt/4546
+//            Text(
+//                text = "$imp",
+//                textAlign = TextAlign.Center
+//            )
+//        }
     }
 }
 

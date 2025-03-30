@@ -29,14 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.content.Context
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationCompat
 import com.example.atubu.R
 import com.example.atubu.dataInterface.PreferenceHelper
 
