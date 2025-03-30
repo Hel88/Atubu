@@ -248,19 +248,37 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
                 )
 
                 if (PreferenceHelper.getBool(context)){
-                    // texte avec la quantité au dessus de la ligne
-                    val textLayoutResult: TextLayoutResult =
-                        textMeasurer.measure(
-                            text = AnnotatedString( "${(position * maxCapacity).toInt()} mL"),
-                            style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                        )
+                    if (PreferenceHelper.getSys(context)){
+                        // texte avec la quantité au dessus de la ligne
+                        val textLayoutResult: TextLayoutResult =
+                            textMeasurer.measure(
+                                text = AnnotatedString( "${(position * maxCapacity/1000).toFloat()} L"),
+                                style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                            )
 
-                    val textOffsetX = 5.0f   // à gauche
-                    val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
-                    drawText(
-                        textLayoutResult = textLayoutResult,
-                        topLeft = Offset(textOffsetX, textOffsetY)
-                    )
+                        val textOffsetX = 5.0f   // à gauche
+                        val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
+                        drawText(
+                            textLayoutResult = textLayoutResult,
+                            topLeft = Offset(textOffsetX, textOffsetY)
+                        )
+                    }
+                    else{
+                        // texte avec la quantité au dessus de la ligne
+                        val textLayoutResult: TextLayoutResult =
+                            textMeasurer.measure(
+                                text = AnnotatedString( "%.2f gal Imp".format({(position * maxCapacity/4546).toFloat()})),
+                                style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                            )
+
+                        val textOffsetX = 5.0f   // à gauche
+                        val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
+                        drawText(
+                            textLayoutResult = textLayoutResult,
+                            topLeft = Offset(textOffsetX, textOffsetY)
+                        )
+                    }
+
                 }
 
             }
@@ -364,6 +382,7 @@ fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showD
 @Composable
 fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
 
+    val context = LocalContext.current // Récupérer le contexte dans un composable
     var image =painterResource(id = R.drawable.verre_petit)
     if (qtt >50 && qtt<=300){image =painterResource(id = R.drawable.verre)}
     if (qtt>300){image =painterResource(id = R.drawable.gourde)}
@@ -382,10 +401,20 @@ fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
             modifier = Modifier
                 .size(100.dp)
         )
-        Text(
-            text = "$qtt",
-            textAlign = TextAlign.Center
-        )
+        if(PreferenceHelper.getSys(context)){
+            Text(
+                text = "$qtt",
+                textAlign = TextAlign.Center
+            )
+        }
+        else{
+            val imp = qtt/4546
+            Text(
+                text = "$imp",
+                textAlign = TextAlign.Center
+            )
+        }
+
     }
 }
 

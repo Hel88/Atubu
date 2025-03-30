@@ -15,12 +15,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.atubu.dataInterface.DataAccessObject
-import com.example.atubu.theme.CupcakeTheme
+import com.example.atubu.theme.AtubuTheme
 import kotlin.jvm.java
 import android.app.PendingIntent
 import android.widget.RemoteViews
 import androidx.compose.material3.Button
 import androidx.core.app.NotificationManagerCompat
+import com.example.atubu.theme.AtubuTheme
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,8 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         createNotificationChannel()
         setContent {
-            CupcakeTheme {
-
+            AtubuTheme {
                 AtubuApp()
             }
         }
