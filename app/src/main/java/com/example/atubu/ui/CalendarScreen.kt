@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,6 +26,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 class CalendarScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +42,7 @@ private const val COLS = 7;
 
 @Composable
 @Preview(showBackground = true)
-private fun ShowCalendar() {
+fun ShowCalendar() {
     Box(
         modifier = Modifier.fillMaxSize().background(Color.Gray),
         contentAlignment = Alignment.TopCenter
@@ -71,7 +74,7 @@ private fun Calendar(
         mutableStateOf(Offset.Zero)
     }
 
-    var AnimationRadius by remember {
+    var animationRadius by remember {
         mutableStateOf(0f)
     }
 
@@ -97,7 +100,13 @@ private fun Calendar(
                             val row = (offset.y / canvasSize.height * ROWS).toInt() + 1
                             val day = column + (row-1) * COLS
                             if(day <= calendarInput.size){
-
+                                onDayClick(day)
+                                clickAnimationOffset = offset
+                                scope.launch {
+                                    animate(0f,225f, animationSpec = tween(300)) {value, _ ->
+                                    animationRadius = value
+                                    }
+                                }
                             }
                         }
                     )

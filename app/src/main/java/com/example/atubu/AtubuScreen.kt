@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.DismissibleDrawerSheet
@@ -47,7 +48,7 @@ import com.example.atubu.ui.PlantViewModel
 import com.example.atubu.ui.StartSettingScreen
 import com.example.atubu.ui.Friend
 import com.example.atubu.ui.ComingSoonScreen
-
+import com.example.atubu.ui.ShowCalendar
 
 
 /**
@@ -55,6 +56,7 @@ import com.example.atubu.ui.ComingSoonScreen
  */
 enum class AtubuScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
+    Calendar(title = R.string.calendar),
     Setting(title = R.string.setting),
     Friend(title=R.string.friend),
     Success(title = R.string.success)
@@ -137,6 +139,12 @@ fun AtubuApp(
                     Spacer(Modifier.height(12.dp))
 
                     NavigationDrawerItem(
+                        label = { Text("Calendrier") },
+                        selected = false,
+                        icon = { Icon(Icons.Outlined.DateRange, contentDescription = null) },
+                        onClick = { navController.navigate(AtubuScreen.Calendar.name)}
+                    )
+                    NavigationDrawerItem(
                         label = { Text("Amis") },
                         selected = false,
                         icon = { Icon(painter = image, contentDescription = "friend", modifier = Modifier.size(24.dp)) },
@@ -181,6 +189,9 @@ fun AtubuApp(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                composable(route = AtubuScreen.Calendar.name) {
+                    ShowCalendar()
+                }
                 composable(route = AtubuScreen.Start.name) {
                     PlantScreen()
                 }
