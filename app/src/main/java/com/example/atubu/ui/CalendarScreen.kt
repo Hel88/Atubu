@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -37,14 +39,14 @@ class CalendarScreen : ComponentActivity() {
     }
 }
 
-private const val ROWS = 5;
-private const val COLS = 7;
+private const val ROWS = 5
+private const val COLS = 7
 
 @Composable
 @Preview(showBackground = true)
 fun ShowCalendar() {
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Gray),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ){
         val calendarInputList by remember { mutableStateOf(createCalendarList()) }
@@ -91,7 +93,7 @@ private fun Calendar(
             modifier = Modifier.size(40.dp)
         )
         Canvas(
-            modifier = Modifier
+            modifier = Modifier.background(Color.White)
                 .fillMaxSize()
                 .pointerInput(true){
                     detectTapGestures (
@@ -115,8 +117,30 @@ private fun Calendar(
             val canvasHeight = size.height
             val canvasWidth = size.width
             canvasSize = Size(canvasWidth, canvasHeight)
-            val ysteps = canvasHeight / ROWS
             val xsteps = canvasWidth / COLS
+            val ysteps = canvasHeight / ROWS
+            val col = (clickAnimationOffset.x / canvasWidth * COLS).toInt() + 1
+            val row = (clickAnimationOffset.y / canvasHeight * ROWS).toInt() + 1
+
+            // Masque de l'animation
+            val path = Path().apply {
+                moveTo((col - 1)*xsteps, (row - 1)*ysteps)
+                lineTo(col * xsteps, (row - 1)*ysteps)
+                lineTo(col * xsteps, row * ysteps)
+                lineTo((col - 1)*xsteps, row * ysteps)
+                close()
+            }
+
+            clipPath(path){
+                drawCircle(
+                    brush = Brush.radialGradient(listOf(Color.Green.copy(0.8f), Color.Green.copy(0.2f)),
+                        center = clickAnimationOffset,
+                        radius = animationRadius + 0.1f,
+                    ),
+                    radius = animationRadius + 0.1f,
+                    center = clickAnimationOffset
+                )
+            }
 
             drawRoundRect(
                 Color.Black,
