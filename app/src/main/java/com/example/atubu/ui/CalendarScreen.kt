@@ -18,7 +18,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -26,15 +25,18 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import com.example.atubu.theme.*
 
 class CalendarScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent{
-            ShowCalendar()
+            ShowGarden()
         }
     }
 }
@@ -44,20 +46,37 @@ private const val COLS = 7
 
 @Composable
 @Preview(showBackground = true)
-fun ShowCalendar() {
+fun ShowGarden() {
+
+    val calendarInputList by remember { mutableStateOf(createCalendarList()) }
+    var clickedCalendarItem by remember { mutableStateOf<CalendarInput?>(null) }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ){
-        val calendarInputList by remember { mutableStateOf(createCalendarList()) }
-        Calendar(
-            modifier = Modifier.fillMaxWidth().padding(10.dp).aspectRatio(1.3f),
-            calendarInput = calendarInputList,
-            onDayClick = {
-                Log.d("CalendarScreen", "Day clicked $it")
-            },
-            month = "March"
+        Column (
+            modifier = Modifier.fillMaxWidth().padding(10.dp).align(Alignment.Center)
         )
+        {
+            Calendar(
+                calendarInput = calendarInputList,
+                onDayClick = { day ->
+                    clickedCalendarItem = calendarInputList.first{it.day == day}
+                },
+                month = "Avril",
+                modifier = Modifier.fillMaxWidth().padding(10.dp).aspectRatio(1.3f),
+            )
+
+            val waterDrunk = clickedCalendarItem?.value ?: 0
+            Text(
+                text = waterDrunk.toString(),
+                modifier = Modifier.fillMaxWidth(),
+                color = md_theme_light_scrim,
+                textAlign = TextAlign.Center,
+                style = Typography.bodyLarge
+            )
+        }
     }
 }
 
@@ -88,12 +107,13 @@ private fun Calendar(
     ){
         Text(
             text = month,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.Black,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.fillMaxWidth(),
+            color = md_theme_light_scrim,
+            textAlign = TextAlign.Center,
+            style = Typography.bodyLarge
         )
         Canvas(
-            modifier = Modifier.background(Color.White)
+            modifier = Modifier.background(md_theme_light_onPrimary)
                 .fillMaxSize()
                 .pointerInput(true){
                     detectTapGestures (
@@ -133,7 +153,7 @@ private fun Calendar(
 
             clipPath(path){
                 drawCircle(
-                    brush = Brush.radialGradient(listOf(Color.Green.copy(0.8f), Color.Green.copy(0.2f)),
+                    brush = Brush.radialGradient(listOf(md_theme_light_primary.copy(0.8f), md_theme_light_primary.copy(0.2f)),
                         center = clickAnimationOffset,
                         radius = animationRadius + 0.1f,
                     ),
@@ -143,14 +163,14 @@ private fun Calendar(
             }
 
             drawRoundRect(
-                Color.Black,
+                md_theme_light_primary,
                 cornerRadius = CornerRadius(10f, 10f),
                 style = Stroke(width = strokeWidth)
             )
 
             for(i in 1 until ROWS){
                 drawLine(
-                    color = Color.Black,
+                    color = md_theme_light_primary,
                     start = Offset(0f, i * ysteps),
                     end = Offset(canvasWidth, i * ysteps),
                     strokeWidth = strokeWidth
@@ -159,7 +179,7 @@ private fun Calendar(
 
             for(j in 1 until COLS){
                 drawLine(
-                    color = Color.Black,
+                    color = md_theme_light_primary,
                     start = Offset(j * xsteps, 0f),
                     end = Offset(j * xsteps, canvasHeight),
                     strokeWidth = strokeWidth
@@ -177,7 +197,7 @@ private fun Calendar(
                         posY,
                         android.graphics.Paint().apply {
                             textSize = txtHeight
-                            color = Color.Black.toArgb()
+                            color = md_theme_light_scrim.toArgb()
                             isFakeBoldText = true
                         }
                     )

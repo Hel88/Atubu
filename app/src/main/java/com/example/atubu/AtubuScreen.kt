@@ -48,7 +48,7 @@ import com.example.atubu.ui.PlantViewModel
 import com.example.atubu.ui.StartSettingScreen
 import com.example.atubu.ui.Friend
 import com.example.atubu.ui.ComingSoonScreen
-import com.example.atubu.ui.ShowCalendar
+import com.example.atubu.ui.ShowGarden
 
 
 /**
@@ -56,7 +56,7 @@ import com.example.atubu.ui.ShowCalendar
  */
 enum class AtubuScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
-    Calendar(title = R.string.calendar),
+    Garden(title = R.string.garden),
     Setting(title = R.string.setting),
     Friend(title=R.string.friend),
     Success(title = R.string.success)
@@ -139,10 +139,10 @@ fun AtubuApp(
                     Spacer(Modifier.height(12.dp))
 
                     NavigationDrawerItem(
-                        label = { Text("Calendrier") },
+                        label = { Text("Jardin") },
                         selected = false,
                         icon = { Icon(Icons.Outlined.DateRange, contentDescription = null) },
-                        onClick = { navController.navigate(AtubuScreen.Calendar.name)}
+                        onClick = { navController.navigate(AtubuScreen.Garden.name)}
                     )
                     NavigationDrawerItem(
                         label = { Text("Amis") },
@@ -189,8 +189,8 @@ fun AtubuApp(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                composable(route = AtubuScreen.Calendar.name) {
-                    ShowCalendar()
+                composable(route = AtubuScreen.Garden.name) {
+                    ShowGarden()
                 }
                 composable(route = AtubuScreen.Start.name) {
                     PlantScreen()
