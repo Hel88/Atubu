@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.DismissibleDrawerSheet
@@ -46,7 +47,7 @@ import com.example.atubu.ui.PlantScreen
 import com.example.atubu.ui.StartSettingScreen
 import com.example.atubu.ui.Friend
 import com.example.atubu.ui.ComingSoonScreen
-
+import com.example.atubu.ui.ShowGarden
 
 
 /**
@@ -54,6 +55,7 @@ import com.example.atubu.ui.ComingSoonScreen
  */
 enum class AtubuScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
+    Garden(title = R.string.garden),
     Setting(title = R.string.setting),
     Friend(title=R.string.friend),
     Success(title = R.string.success)
@@ -136,6 +138,12 @@ fun AtubuApp(
                     Spacer(Modifier.height(12.dp))
 
                     NavigationDrawerItem(
+                        label = { Text("Jardin") },
+                        selected = false,
+                        icon = { Icon(Icons.Outlined.DateRange, contentDescription = null) },
+                        onClick = { navController.navigate(AtubuScreen.Garden.name)}
+                    )
+                    NavigationDrawerItem(
                         label = { Text("Amis") },
                         selected = false,
                         icon = { Icon(painter = image, contentDescription = "friend", modifier = Modifier.size(24.dp)) },
@@ -180,6 +188,9 @@ fun AtubuApp(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                composable(route = AtubuScreen.Garden.name) {
+                    ShowGarden()
+                }
                 composable(route = AtubuScreen.Start.name) {
                     PlantScreen()
                 }
