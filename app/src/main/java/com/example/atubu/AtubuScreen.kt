@@ -1,5 +1,7 @@
 package com.example.atubu
 
+import android.Manifest
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +49,7 @@ import com.example.atubu.ui.PlantViewModel
 import com.example.atubu.ui.StartSettingScreen
 import com.example.atubu.ui.Friend
 import com.example.atubu.ui.ComingSoonScreen
-
+import com.example.atubu.ui.permission.RuntimePermissionsDialog
 
 
 /**
@@ -118,6 +120,15 @@ fun AtubuApp(
 
     navController : NavHostController = rememberNavController()
 ){
+
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        RuntimePermissionsDialog(
+            Manifest.permission.POST_NOTIFICATIONS,
+            onPermissionDenied = {},
+            onPermissionGranted = {},
+        )
+    }
+
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AtubuScreen.valueOf(
