@@ -27,8 +27,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.atubu.notifications.NotificationInterface
 import com.example.atubu.notifications.NotificationWorker
-import com.example.atubu.ui.permission.RuntimePermissionsDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,17 +36,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dataAccessObject: DataAccessObject
     private lateinit var helloView: TextView
 
+    private lateinit var notifInterface : NotificationInterface
+
 //    private val channelId = "i.apps.notifications" // Unique channel ID for notifications
 //    private val description = "Test notification"  // Description for the notification channel
 //    private val notificationId = 1234 // Unique identifier for the notification
 
 
 
-    private lateinit var workManager: WorkManager
-    private val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
-    private val workName = "NotifWorker"
+
 
 
 
@@ -54,28 +52,21 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        WorkManager.getInstance(applicationContext)
         setContent {
             CupcakeTheme {
 
                 AtubuApp()
             }
         }
+        notifInterface = NotificationInterface(applicationContext)
+        notifInterface.singleNotification("Hydrates-toi !","N'oublie pas de boire de l'eau.")
 
 
 
-       val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
-            .setConstraints(constraints)
-            .build()
-
-        workManager = WorkManager.getInstance(applicationContext)
-        workManager.enqueueUniqueWork(
-            workName,
-            ExistingWorkPolicy.REPLACE,
-            workRequest)
 
 
 
+//        dataAccessObject = DataAccessObject(applicationContext)
 //        dataAccessObject = DataAccessObject(applicationContext)
 //        helloView = findViewById(R.id.HelloDisplay)
 //        helloView.text = dataAccessObject.incrementTest()
@@ -111,7 +102,7 @@ class MainActivity : AppCompatActivity() {
 //        // Build the notification
 //        val builder = NotificationCompat.Builder(this, "notif_channel_id")
 //            .setSmallIcon(R.drawable.ic_launcher_foreground) // Remplace avec ton icône
-//            .setContentTitle("Hydrate-toi !")
+//            .setContentTitle("Hydrates-toi !")
 //            .setContentText("N'oublie pas de boire de l'eau.")
 //            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 //            .setAutoCancel(true)

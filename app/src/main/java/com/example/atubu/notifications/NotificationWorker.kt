@@ -48,6 +48,9 @@ class NotificationWorker(private val context: Context, workerParams: WorkerParam
     private fun createNotification() : Notification {
         createNotificationChannel();
 
+        val title = inputData.getString("Title")
+        val text = inputData.getString("Text")
+
         val mainActivityIntent = Intent(applicationContext, MainActivity::class.java)
 
         var pendingIntentFlag by Delegates.notNull<Int>()
@@ -66,7 +69,8 @@ class NotificationWorker(private val context: Context, workerParams: WorkerParam
 
         return NotificationCompat.Builder(applicationContext,
             notificationChannelId).setSmallIcon(R.drawable.goute)
-            .setContentTitle(applicationContext.getString(R.string.app_name))
+            .setContentTitle(title)//applicationContext.getString(R.string.app_name))
+            .setContentText(text)
             .build()
     }
 
