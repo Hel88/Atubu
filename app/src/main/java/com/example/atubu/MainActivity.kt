@@ -15,20 +15,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.atubu.dataInterface.DataAccessObject
-import com.example.atubu.theme.CupcakeTheme
+import com.example.atubu.theme.AtubuTheme
 import kotlin.jvm.java
 import android.app.PendingIntent
 import android.widget.RemoteViews
 import androidx.compose.material3.Button
 import androidx.core.app.NotificationManagerCompat
-import android.Manifest
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import com.example.atubu.theme.AtubuTheme
 import com.example.atubu.notifications.NotificationInterface
-import com.example.atubu.notifications.NotificationWorker
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,8 +48,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            CupcakeTheme {
-
+            AtubuTheme {
                 AtubuApp()
             }
         }

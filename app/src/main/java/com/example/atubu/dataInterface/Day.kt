@@ -27,6 +27,18 @@ object PreferenceHelper{
     private const val MIN_QTT = "quantite_min"
     private const val MAX_QTT = "quantite_max"
     private const val BOOL_DISPLAY = "display_qtt"
+    private const val BOOL_SYS = "systeme_metimp"
+
+
+    fun setSys(context: Context, display: Boolean) {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(BOOL_SYS, display).apply()
+    }
+
+    fun getSys(context: Context): Boolean {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(BOOL_SYS, true)
+    }
 
     fun setBool(context: Context, display: Boolean) {
         val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)

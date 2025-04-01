@@ -29,14 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.content.Context
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationCompat
 import com.example.atubu.R
 import com.example.atubu.dataInterface.PreferenceHelper
 
@@ -184,10 +181,18 @@ fun NotifPart() {
 fun HydratPart() {
     var checked by remember { mutableStateOf(true) }
     val context = LocalContext.current // Récupérer le contexte dans un composable
+    var selectedReminderType by remember { mutableStateOf("regular")}
 
     // Charger la valeur enregistrée
     LaunchedEffect(Unit) {
         checked = PreferenceHelper.getBool(context)
+        if (PreferenceHelper.getSys(context)){
+            selectedReminderType = "regular"
+        }
+        else{
+            selectedReminderType = "smart"
+        }
+
     }
 
     Column(){
@@ -207,7 +212,7 @@ fun HydratPart() {
         Spacer(modifier = Modifier.width(8.dp))
         Text("Afficher les quantités d'eau",fontSize = 15.sp)
     }
-    var selectedReminderType by remember { mutableStateOf("regular")}
+
     var textValueMin by remember { mutableStateOf("") }
     var textValueMax by remember { mutableStateOf("") }
     var showDialogMin by remember { mutableStateOf(false) }
@@ -238,7 +243,10 @@ fun HydratPart() {
         {
             RadioButton(
                 selected = selectedReminderType == "regular",
-                onClick = { selectedReminderType = "regular" }
+                onClick = {
+                    selectedReminderType = "regular"
+                    PreferenceHelper.setSys(context, true)
+                }
             )
             Column {
                 Text(text = "Système métrique", fontWeight = FontWeight.Bold)
@@ -252,7 +260,10 @@ fun HydratPart() {
         {
             RadioButton(
                 selected = selectedReminderType == "smart",
-                onClick = { selectedReminderType = "smart" }
+                onClick = {
+                    selectedReminderType = "smart"
+                    PreferenceHelper.setSys(context, false)
+                }
             )
             Column {
                 Text(text = "Système impérial", fontWeight = FontWeight.Bold)
