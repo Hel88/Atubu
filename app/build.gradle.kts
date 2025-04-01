@@ -11,9 +11,14 @@ android {
     namespace = "com.example.atubu"
     compileSdk = 35
 
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
+
     defaultConfig {
         applicationId = "com.example.atubu"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -31,14 +36,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
-
-
 
     buildFeatures {
         compose = true
@@ -51,6 +55,15 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    // For Glance support
+    implementation("androidx.glance:glance:1.1.1")
+
+    // For AppWidgets support
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+
+    // For Wear-Tiles support
+    implementation("androidx.glance:glance-wear-tiles:1.0.0-alpha05")
 
     implementation ("androidx.work:work-runtime-ktx:2.8.1")
     implementation("androidx.core:core-ktx:1.15.0")
