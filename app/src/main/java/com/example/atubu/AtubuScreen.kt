@@ -1,5 +1,7 @@
 package com.example.atubu
 
+import android.Manifest
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,7 +50,6 @@ import com.example.atubu.ui.StartSettingScreen
 import com.example.atubu.ui.Friend
 import com.example.atubu.ui.ComingSoonScreen
 import com.example.atubu.ui.ShowGarden
-
 
 /**
  * enum values that represent the screens in the app
@@ -119,6 +120,8 @@ fun AtubuApp(
 
     navController : NavHostController = rememberNavController()
 ){
+
+
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AtubuScreen.valueOf(
