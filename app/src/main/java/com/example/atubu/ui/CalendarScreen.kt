@@ -29,18 +29,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.atubu.dataInterface.DataAccessObject
 import kotlinx.coroutines.launch
 import com.example.atubu.theme.*
+import java.sql.Date
 import java.time.LocalDate
-
-class CalendarScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent{
-            ShowGarden()
-        }
-    }
-}
 
 private const val ROWS = 6
 private const val COLS = 7
@@ -48,11 +41,28 @@ private const val COLS = 7
 var desiredYear = Calendar.getInstance().get(Calendar.YEAR)
 var desiredMonth = Calendar.getInstance().get(Calendar.MONTH)
 
+class CalendarScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val dao = DataAccessObject.getDAO(this)
+        setContent{
+            ShowGarden(dao)
+        }
+    }
+}
+
 @Composable
 @Preview(showBackground = true)
-fun ShowGarden() {
+fun ShowGarden(
+    dao : DataAccessObject?
+) {
 
-    val calendarInputList by remember { mutableStateOf(createCalendarList(desiredMonth, desiredYear, desiredYear ==  Calendar.getInstance().get(Calendar.YEAR) && desiredMonth == Calendar.getInstance().get(Calendar.MONTH))) }
+    val calendarInputList by remember { mutableStateOf(createCalendarList(
+        desiredMonth,
+        desiredYear,
+        desiredYear ==  Calendar.getInstance().get(Calendar.YEAR) && desiredMonth == Calendar.getInstance().get(Calendar.MONTH),
+        dao))
+    }
     var clickedCalendarItem by remember { mutableStateOf<CalendarInput?>(null) }
 
     Box(
@@ -255,7 +265,8 @@ private fun CalendarDisplay(
 private fun createCalendarList(
     month : Int,
     year : Int,
-    isThisMonth : Boolean
+    isThisMonth : Boolean,
+    dao : DataAccessObject?
 ): List<CalendarInput> {
 
     val calendar = Calendar.getInstance()
@@ -263,16 +274,31 @@ private fun createCalendarList(
     calendar.set(year, month, 1)
 
     val calendarInputs = mutableListOf<CalendarInput>()
+
     for (i in 1..calendar.getActualMaximum(Calendar.DAY_OF_MONTH)) {
         calendarInputs.add(
             CalendarInput(
                 i,
                 if(isThisMonth) i == calendar.get(Calendar.DAY_OF_MONTH) else false,
-                (0..1000).random(),
+                0f,
                 1000
             )
         )
     }
+
+    dao?.getDaysBetween(Date(year,month,1), Date(year,month,calendar.getActualMaximum(Calendar.DAY_OF_MONTH)),
+        callback = { result ->
+            if (result.isSuccess) {
+                val days = result.getOrNull()
+                if (days != null) {
+                    for(i in days.indices){
+                        calendarInputs[i].value = days[i].waterDrunkL
+                    }
+                }
+            }
+        }
+    )
+
     return calendarInputs
 }
 
@@ -298,8 +324,8 @@ private fun getMonthString(
 }
 
 data class CalendarInput(
-    val day:Int,
+    val day:Int?,
     val isToday:Boolean = false,
-    val value:Int,
+    var value:Float?,
     val objective:Int
 )
