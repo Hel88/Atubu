@@ -39,9 +39,6 @@ import java.time.LocalDate
 private const val ROWS = 6
 private const val COLS = 7
 
-var desiredYear = Calendar.getInstance().get(Calendar.YEAR)
-var desiredMonth = Calendar.getInstance().get(Calendar.MONTH)
-
 class CalendarScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,15 +58,6 @@ class CalendarScreen : ComponentActivity() {
 fun ShowGarden(
     dao : DataAccessObject?
 ) {
-
-    val calendarInputList by remember { mutableStateOf(createCalendarList(
-        desiredMonth,
-        desiredYear,
-        desiredYear ==  Calendar.getInstance().get(Calendar.YEAR) && desiredMonth == Calendar.getInstance().get(Calendar.MONTH),
-        dao))
-    }
-    var clickedCalendarItem by remember { mutableStateOf<CalendarInput?>(null) }
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -79,23 +67,7 @@ fun ShowGarden(
         )
         {
             CalendarDisplay(
-                calendarInput = calendarInputList,
-                onDayClick = { day -> clickedCalendarItem = calendarInputList.first{it.day == day}},
-                month = desiredMonth,
-                year = desiredYear,
-            )
-
-            var waterDrunk = ""
-            if(clickedCalendarItem?.value != null){
-                waterDrunk = clickedCalendarItem?.day.toString() + " " + getMonthString(desiredMonth) + " : " + clickedCalendarItem?.value.toString() + "mL"
-            }
-
-            Text(
-                text = waterDrunk,
-                modifier = Modifier.fillMaxWidth(),
-                color = md_theme_light_onPrimary,
-                textAlign = TextAlign.Center,
-                style = Typography.bodyLarge
+                dao = dao,
             )
         }
     }
@@ -103,20 +75,28 @@ fun ShowGarden(
 
 @Composable
 private fun CalendarDisplay(
-    calendarInput: List<CalendarInput>,
-    onDayClick: (Int) -> Unit,
     strokeWidth: Float = 15f,
-    month : Int,
-    year : Int,
-    firstDay : Int = LocalDate.of(year, month + 1, 1).dayOfWeek.value - 1
+    month : Int = Calendar.getInstance().get(Calendar.MONTH),
+    year : Int = Calendar.getInstance().get(Calendar.YEAR),
+    firstDay : Int = LocalDate.of(year, month + 1, 1).dayOfWeek.value - 1,
+    dao : DataAccessObject?
 ) {
-    var canvasSize by remember { mutableStateOf(Size.Zero) }
-    var clickAnimationOffset by remember { mutableStateOf(Offset.Zero) }
-    var animationRadius by remember { mutableFloatStateOf(0f) }
 
     var currentMonth by remember { mutableIntStateOf(month) }
     var currentYear by remember { mutableIntStateOf(year) }
     var currentFirst by remember { mutableIntStateOf(firstDay) }
+
+    val calendarInput by remember { mutableStateOf(createCalendarList(
+        currentMonth,
+        currentYear,
+        currentYear ==  Calendar.getInstance().get(Calendar.YEAR) && currentMonth == Calendar.getInstance().get(Calendar.MONTH),
+        dao))
+    }
+    var clickedCalendarItem by remember { mutableStateOf<CalendarInput?>(null) }
+
+    var canvasSize by remember { mutableStateOf(Size.Zero) }
+    var clickAnimationOffset by remember { mutableStateOf(Offset.Zero) }
+    var animationRadius by remember { mutableFloatStateOf(0f) }
 
     val scope = rememberCoroutineScope()
 
@@ -177,7 +157,7 @@ private fun CalendarDisplay(
                             val row = (offset.y / canvasSize.height * ROWS).toInt() + 1
                             val day = (column + (row - 1) * COLS) - currentFirst
                             if (day <= calendarInput.size && day > 0) {
-                                onDayClick(day)
+                                clickedCalendarItem = calendarInput.first{it.day == day}
                                 clickAnimationOffset = offset
                                 scope.launch {
                                     animate(0f, 225f, animationSpec = tween(300)) { value, _ ->
@@ -268,6 +248,19 @@ private fun CalendarDisplay(
             }
         }
     }
+
+    var waterDrunk = ""
+    if(clickedCalendarItem?.value != null){
+        waterDrunk = clickedCalendarItem?.day.toString() + " " + getMonthString(currentMonth) + " : " + clickedCalendarItem?.value.toString() + "mL"
+    }
+
+    Text(
+        text = waterDrunk,
+        modifier = Modifier.fillMaxWidth(),
+        color = md_theme_light_onPrimary,
+        textAlign = TextAlign.Center,
+        style = Typography.bodyLarge
+    )
 }
 
 private fun createCalendarList(
