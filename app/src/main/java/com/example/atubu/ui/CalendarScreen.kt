@@ -88,7 +88,7 @@ fun ShowGarden(
             Text(
                 text = waterDrunk,
                 modifier = Modifier.fillMaxWidth(),
-                color = md_theme_light_scrim,
+                color = md_theme_light_onPrimary,
                 textAlign = TextAlign.Center,
                 style = Typography.bodyLarge
             )
@@ -101,8 +101,9 @@ private fun CalendarDisplay(
     calendarInput: List<CalendarInput>,
     onDayClick: (Int) -> Unit,
     strokeWidth: Float = 15f,
-    month: Int,
-    year: Int,
+    month : Int,
+    year : Int,
+    firstDay : Int = LocalDate.of(year, month + 1, 1).dayOfWeek.value - 1
 ) {
     var canvasSize by remember { mutableStateOf(Size.Zero) }
     var clickAnimationOffset by remember { mutableStateOf(Offset.Zero) }
@@ -110,9 +111,9 @@ private fun CalendarDisplay(
 
     var currentMonth by remember { mutableIntStateOf(month) }
     var currentYear by remember { mutableIntStateOf(year) }
+    var currentFirst by remember { mutableIntStateOf(firstDay) }
 
     val scope = rememberCoroutineScope()
-    val firstDayOfMonth = LocalDate.of(currentYear, currentMonth + 1, 1).dayOfWeek.value - 1
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(10.dp).aspectRatio(1.1f),
@@ -131,6 +132,7 @@ private fun CalendarDisplay(
                         currentMonth = 11
                         currentYear--
                     }
+                    currentFirst = LocalDate.of(currentYear, currentMonth + 1, 1).dayOfWeek.value - 1
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = md_theme_light_primary)
             ) {
@@ -139,7 +141,7 @@ private fun CalendarDisplay(
 
             Text(
                 text = getMonthString(currentMonth) + " " + currentYear,
-                color = md_theme_light_scrim,
+                color = md_theme_light_onPrimary,
                 textAlign = TextAlign.Center,
                 style = Typography.bodyLarge
             )
@@ -152,6 +154,7 @@ private fun CalendarDisplay(
                         currentMonth = 0
                         currentYear++
                     }
+                    currentFirst = LocalDate.of(currentYear, currentMonth + 1, 1).dayOfWeek.value - 1
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = md_theme_light_primary)
             ) {
@@ -167,7 +170,7 @@ private fun CalendarDisplay(
                         onTap = { offset ->
                             val column = (offset.x / canvasSize.width * COLS).toInt() + 1
                             val row = (offset.y / canvasSize.height * ROWS).toInt() + 1
-                            val day = (column + (row - 1) * COLS) - firstDayOfMonth
+                            val day = (column + (row - 1) * COLS) - currentFirst
                             if (day <= calendarInput.size && day > 0) {
                                 onDayClick(day)
                                 clickAnimationOffset = offset
@@ -237,8 +240,8 @@ private fun CalendarDisplay(
             val txtHeight = 17.dp.toPx()
 
             for (i in calendarInput.indices) {
-                val posX = xsteps * ((i + firstDayOfMonth) % COLS) + strokeWidth
-                val posY = ((i + firstDayOfMonth) / COLS) * ysteps + txtHeight + strokeWidth / 2
+                val posX = xsteps * ((i + currentFirst) % COLS) + strokeWidth
+                val posY = ((i + currentFirst) / COLS) * ysteps + txtHeight + strokeWidth / 2
 
                 /*
                 Box(
