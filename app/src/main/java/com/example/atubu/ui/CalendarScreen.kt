@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.atubu.dataInterface.DataAccessObject
+import com.example.atubu.dataInterface.Day
 import kotlinx.coroutines.launch
 import com.example.atubu.theme.*
 import java.sql.Date
@@ -45,6 +46,10 @@ class CalendarScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val dao = DataAccessObject.getDAO(this)
+
+        dao.insertDay(Day(Date(2025,4,1),500f, 1))
+        dao.insertDay(Day(Date(2025,4,2),700f, 2))
+
         setContent{
             ShowGarden(dao)
         }
@@ -282,7 +287,7 @@ private fun createCalendarList(
         calendarInputs.add(
             CalendarInput(
                 i,
-                if(isThisMonth) i == calendar.get(Calendar.DAY_OF_MONTH) else false,
+                if(isThisMonth) i == calendar.get(Calendar.DAY_OF_MONTH)+1 else false,
                 0f,
                 1000
             )
