@@ -300,7 +300,7 @@ fun PlantImage(currentWaterQtt: Int, minGoal: Int, maxGoal: Int){
         painter = image,
         contentDescription = "Plant",
         modifier = Modifier
-            .size(350.dp)
+            .size(250.dp)
     )
 }
 
