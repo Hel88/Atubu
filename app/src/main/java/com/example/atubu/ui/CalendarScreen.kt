@@ -127,7 +127,7 @@ private fun CalendarDisplay(
 
             Text(
                 text = getMonthString(currentMonth) + " " + currentYear,
-                color = md_theme_light_onPrimary,
+                color = md_theme_light_scrim,
                 textAlign = TextAlign.Center,
                 style = Typography.bodyLarge
             )
@@ -258,7 +258,7 @@ private fun CalendarDisplay(
     Text(
         text = waterDrunk,
         modifier = Modifier.fillMaxWidth(),
-        color = md_theme_light_onPrimary,
+        color = md_theme_light_scrim,
         textAlign = TextAlign.Center,
         style = Typography.bodyLarge
     )
