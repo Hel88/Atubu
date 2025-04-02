@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import com.example.atubu.theme.*
 import java.sql.Date
 import java.time.LocalDate
+import android.util.Log
 
 private const val ROWS = 6
 private const val COLS = 7
@@ -43,9 +44,6 @@ class CalendarScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val dao = DataAccessObject.getDAO(this)
-
-        dao.insertDay(Day(Date(2025,4,1),500f, 1))
-        dao.insertDay(Day(Date(2025,4,2),700f, 2))
 
         setContent{
             ShowGarden(dao)
@@ -56,8 +54,11 @@ class CalendarScreen : ComponentActivity() {
 @Composable
 @Preview(showBackground = true)
 fun ShowGarden(
-    dao : DataAccessObject?
+    dao : DataAccessObject
 ) {
+    dao.insertDay(Day(Date(2025,3,1),500f, 1))
+    dao.insertDay(Day(Date(2025,3,2),700f, 2))
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -79,7 +80,7 @@ private fun CalendarDisplay(
     month : Int = Calendar.getInstance().get(Calendar.MONTH),
     year : Int = Calendar.getInstance().get(Calendar.YEAR),
     firstDay : Int = LocalDate.of(year, month + 1, 1).dayOfWeek.value - 1,
-    dao : DataAccessObject?
+    dao : DataAccessObject
 ) {
 
     var currentMonth by remember { mutableIntStateOf(month) }
@@ -267,7 +268,7 @@ private fun createCalendarList(
     month : Int,
     year : Int,
     isThisMonth : Boolean,
-    dao : DataAccessObject?
+    dao : DataAccessObject
 ): List<CalendarInput> {
 
     val calendar = Calendar.getInstance()
@@ -287,12 +288,15 @@ private fun createCalendarList(
         )
     }
 
-    dao?.getDaysBetween(Date(year,month,1), Date(year,month,calendar.getActualMaximum(Calendar.DAY_OF_MONTH)),
+    dao.getDaysBetween(Date(year,month,1), Date(year,month,calendar.getActualMaximum(Calendar.DAY_OF_MONTH)),
         callback = { result ->
+            Log.d("message","Date : $year $month")
+            Log.d("message","Result : $result $result.size")
             if (result.isSuccess) {
                 val days = result.getOrNull()
                 if (days != null) {
                     for(i in days.indices){
+                        Log.d("message", "$i ${days[i].date} ${days[i].waterDrunkL}")
                         calendarInputs[i].value = days[i].waterDrunkL
                     }
                 }

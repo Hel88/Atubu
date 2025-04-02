@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             AtubuTheme {
-                AtubuApp()
+                AtubuApp(DataAccessObject.getDAO(this))
             }
         }
         notifInterface = NotificationInterface(applicationContext)

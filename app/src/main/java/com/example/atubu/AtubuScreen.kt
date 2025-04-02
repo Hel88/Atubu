@@ -42,6 +42,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.atubu.dataInterface.DataAccessObject
 import kotlinx.coroutines.launch
 import com.example.atubu.ui.PlantScreen
 import com.example.atubu.ui.StartSettingScreen
@@ -115,7 +116,7 @@ fun NavDrawer(){
 
 @Composable
 fun AtubuApp(
-
+    dao: DataAccessObject,
     navController : NavHostController = rememberNavController()
 ){
 
@@ -190,7 +191,7 @@ fun AtubuApp(
                     .padding(innerPadding)
             ) {
                 composable(route = AtubuScreen.Garden.name) {
-                    ShowGarden(null)
+                    ShowGarden(dao)
                 }
                 composable(route = AtubuScreen.Start.name) {
                     PlantScreen()
