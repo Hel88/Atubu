@@ -1,7 +1,5 @@
 package com.example.atubu
 
-import android.Manifest
-import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -192,7 +190,7 @@ fun AtubuApp(
                     .padding(innerPadding)
             ) {
                 composable(route = AtubuScreen.Garden.name) {
-                    ShowGarden()
+                    ShowGarden(null)
                 }
                 composable(route = AtubuScreen.Start.name) {
                     PlantScreen()
