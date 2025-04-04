@@ -120,7 +120,7 @@ fun AddWaterDialog(
                         customGlassText = text
                         errorMessage = false
                     },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.NumberPassword)
                 )
                 if (errorMessage) {
                     Text("Quantité invalide")
