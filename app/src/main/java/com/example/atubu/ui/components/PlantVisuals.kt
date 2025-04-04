@@ -43,8 +43,15 @@ fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplaye
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween // Plante à gauche, jauge à droite
     ) {
-        PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
-        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal, textDisplayedSetting, metricSystem)
+        Box(Modifier
+            .weight(1f),
+        )
+        {
+            PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
+        }
+        Box(Modifier.weight(0.1f)){
+            WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal, textDisplayedSetting, metricSystem)
+        }
     }
 }
 
@@ -157,6 +164,6 @@ fun PlantImage(currentWaterQtt: Int, minGoal: Int, maxGoal: Int){
         painter = image,
         contentDescription = "Plant",
         modifier = Modifier
-            .size(250.dp)
+            .fillMaxWidth()
     )
 }
