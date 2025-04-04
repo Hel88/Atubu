@@ -103,7 +103,7 @@ fun AddWaterDialog(
     onDismiss: () -> Unit,
     onAddCustomGlass: (Int) -> Unit)
 {
-    var customGlassQtt by remember { mutableIntStateOf(0) }
+    var customGlassText by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf(false) } // Message d'erreur
 
     if (!showDialog) return
@@ -115,9 +115,10 @@ fun AddWaterDialog(
             Column {
                 Text("Entrez la quantité en ml :")
                 OutlinedTextField(
-                    value = customGlassQtt.toString(),
+                    value = customGlassText,
                     onValueChange = { text ->
-                        customGlassQtt = text.toIntOrNull() ?: 0
+                        customGlassText = text
+                        errorMessage = false
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
@@ -128,8 +129,9 @@ fun AddWaterDialog(
         },
         confirmButton = {
             Button(onClick = {
-                if (customGlassQtt > 0) {
-                    onAddCustomGlass(customGlassQtt)
+                val qtt = customGlassText.toIntOrNull()
+                if (qtt != null && qtt > 0) {
+                    onAddCustomGlass(qtt)
                 }else{
                     errorMessage = true
                 }
