@@ -53,6 +53,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.atubu.R
 import com.example.atubu.dataInterface.PreferenceHelper
+import com.example.atubu.ui.components.AddWaterDialog
+import com.example.atubu.ui.components.DrinkSelectionPanel
+import com.example.atubu.ui.components.PlantAndWater
 import kotlin.math.min
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -60,41 +63,67 @@ import kotlin.math.roundToInt
 @Composable
 fun PlantScreen(){
 
-    // PARAMETRES
-    val textDisplayedSetting = true
-    // ----------
 
-    var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle
+    // DONNEES DE LA DB
+    val context = LocalContext.current // accès DB
+    val minGoal = PreferenceHelper.getMin(context) // Quantité min jauge
+    val maxGoal = PreferenceHelper.getMax(context) // Quantité max jauge
+    val textDisplayedSetting = PreferenceHelper.getBool(context) // Paramètre texte affiché
+    val isMetricSystem = PreferenceHelper.getSys(context) // Paramètre système métrique
+
+    // Quantité d'eau consommée
+    var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle. TODO : acces à la DB
     var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
+    // Verres
+    var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500)) } // quantités des verres. TODO : acces à la DB
+    var showDialog by remember { mutableStateOf(false) } // Pop up créer verre custom
+    var errorMessage by remember { mutableStateOf(false) } // Message d'erreur pop up
 
-    var showDialog by remember { mutableStateOf(false) }
-    var customGlassQtt by remember { mutableIntStateOf(0) }
-    var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500, 100)) }
+
+    // -------- FONCTIONS QUI ACCEDENT A LA DB------------------------------------
+
+    // modification du niveau d'eau de la jauge
+    fun setCurrentWater(newQtt : Int){
+        currentWaterQtt = newQtt
+        // TODO : update la DB
+    }
+
+    // Création verre qtt custom
+    fun addGlass(quantity : Int){
+        if (quantity in glassesQuantities) {// message d'erreur si cette quantité d'eau existe deja
+            errorMessage = true
+            return
+        }
+        glassesQuantities = glassesQuantities + quantity
+        // TODO : update la DB
+        showDialog = false
+    }
+
+    // Suppression verre qtt custom
+    fun suppressGlass(quantity : Int){
+        if (quantity !in glassesQuantities) return // si ce verre n'est pas dans la liste
+        glassesQuantities = glassesQuantities - quantity
+        // TODO : update la DB
+    }
+
+    // --------------------------------------------------------------------------
+
+
 
     fun addWater(addedWater: Float) {
-        currentWaterQtt = (currentWaterQtt + addedWater).toInt()
+        setCurrentWater((currentWaterQtt + addedWater).toInt())
         history = history + addedWater.toInt() // ajout à l'historique
     }
 
-    fun emptyGauge(){
-        currentWaterQtt = 0
-    }
     fun revertAction(){
         if (history.isNotEmpty()){
-            currentWaterQtt -= history.last()
+            setCurrentWater(currentWaterQtt - history.last())
             history = history.dropLast(1)
         }
     }
 
-    fun suppressGlass(quantity : Int){
-        println("suppress $quantity")
-        if (quantity in glassesQuantities){
-            glassesQuantities = glassesQuantities - quantity
-        }else{
-            println("$quantity not in list of glasses")
-        }
-    }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -105,9 +134,11 @@ fun PlantScreen(){
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.End
         ) {
-            val context = LocalContext.current // Récupérer le contexte dans un composable
-            PlantAndWater(currentWaterQtt, PreferenceHelper.getMin(context), PreferenceHelper.getMax(context), textDisplayedSetting)
-            ResetButtons({ emptyGauge() }, {revertAction()})
+
+            PlantAndWater(currentWaterQtt, minGoal, maxGoal, textDisplayedSetting, isMetricSystem)
+            ResetButtons(
+                empty = { setCurrentWater((0))},
+                revert = {revertAction()})
             }
         Column (
             modifier = Modifier.padding(bottom = 16.dp), // Ajoute un peu d'espace en bas
@@ -124,185 +155,13 @@ fun PlantScreen(){
 
 
     if (showDialog) {
-        var errorMessage by remember { mutableStateOf(false) } // Message d'erreur
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Ajouter un verre personnalisé") },
-            text = {
-                Column {
-                    Text("Entrez la quantité en ml :")
-                    OutlinedTextField(
-                        value = customGlassQtt.toString(),
-                        onValueChange = { text ->
-                            customGlassQtt = text.toIntOrNull() ?: 0
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                    )
-                    if (errorMessage) {
-                        Text("Quantité invalide")
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (customGlassQtt > 0 && customGlassQtt !in glassesQuantities) {
-                        glassesQuantities = glassesQuantities + customGlassQtt
-                        errorMessage = false
-                        showDialog = false
-                    }else{
-                        errorMessage = true
-                    }
-                }) {
-                    Text("Ajouter")
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("Annuler")
-                }
-            }
-        )
+        AddWaterDialog(
+            showDialog = showDialog,
+            onDismiss = {showDialog = false},
+            onAddCustomGlass = { quantity -> addGlass(quantity)})
     }
 }
 
-
-
-
-
-@Composable
-fun PlantAndWater(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSetting : Boolean) {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween // Plante à gauche, jauge à droite
-    ) {
-        PlantImage(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal)
-        WaterGauge(currentWaterQtt = currentWaterQtt, minGoal = minGoal , maxGoal = maxGoal, textDisplayedSetting)
-    }
-}
-
-@Composable
-fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSetting : Boolean) {
-    var color = colorResource(R.color.blue)
-    if(currentWaterQtt < minGoal){
-        color = colorResource(R.color.yellow_dry)
-    }else if (currentWaterQtt > maxGoal){
-        color = colorResource(R.color.brown_overwatered)
-    }
-    val maxHeight = 400.dp // Hauteur max de la jauge
-    val maxCapacity = 3000 // Capacité maximale = 3L
-    val filledHeight = maxHeight * (currentWaterQtt.toFloat() / maxCapacity.toFloat()).coerceIn(0f, 1f)
-    val context = LocalContext.current // Récupérer le contexte dans un composable
-
-    val markerPositions = listOf(minGoal, maxGoal) // Marqueurs
-        .map { it.toFloat() / maxCapacity.toFloat() } // Convertir en % de la jauge
-
-    Box(
-        modifier = Modifier
-            .width(40.dp)
-            .height(maxHeight)
-            .background(Color.Gray, RoundedCornerShape(12.dp))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(filledHeight) // La jauge se remplit selon "progress"
-                .background(color, RoundedCornerShape(12.dp))
-                .align(Alignment.BottomCenter) // L'eau monte depuis le bas
-        )
-        {
-
-            // Le texte au-dessus de la box bleue
-            if (PreferenceHelper.getBool(context)){
-                Text(
-                    text = "${(currentWaterQtt)}",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter) // Aligne le texte en haut au centre
-                        .padding(top = 2.dp) // Ajoute de l'espace entre le texte et la box bleue
-                )
-
-            }
-        }
-
-
-        // marqueurs d'objectifs
-        val textMeasurer = rememberTextMeasurer()
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val gaugeHeight = size.height
-            val gaugeWidth = size.width
-
-            markerPositions.forEach { position ->
-                val y = gaugeHeight * (1 - position) // Convertir en coordonnée Y
-
-                drawLine(
-                    color = Color.DarkGray, // Couleur des marqueurs
-                    start = Offset(0f, y),
-                    end = Offset(gaugeWidth, y),
-                    strokeWidth = 4f
-                )
-
-                if (PreferenceHelper.getBool(context)){
-                    if (PreferenceHelper.getSys(context)){
-                        // texte avec la quantité au dessus de la ligne
-                        val textLayoutResult: TextLayoutResult =
-                            textMeasurer.measure(
-                                text = AnnotatedString( "${(position * maxCapacity/1000).toFloat()} L"),
-                                style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                            )
-
-                        val textOffsetX = 5.0f   // à gauche
-                        val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
-                        drawText(
-                            textLayoutResult = textLayoutResult,
-                            topLeft = Offset(textOffsetX, textOffsetY)
-                        )
-                    }
-                    else{
-                        // texte avec la quantité au dessus de la ligne
-                        val textLayoutResult: TextLayoutResult =
-                            textMeasurer.measure(
-                                text = AnnotatedString( "%.2f gal Imp".format((position * maxCapacity/4546).toFloat())),
-                                style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                            )
-
-                        val textOffsetX = 5.0f   // à gauche
-                        val textOffsetY = y - 30  // Décaler légèrement au-dessus de la ligne
-                        drawText(
-                            textLayoutResult = textLayoutResult,
-                            topLeft = Offset(textOffsetX, textOffsetY)
-                        )
-                    }
-
-                }
-
-            }
-        }
-    }
-}
-
-
-
-@Composable
-fun PlantImage(currentWaterQtt: Int, minGoal: Int, maxGoal: Int){
-    var image = painterResource(id = R.drawable.plant_healthy)
-    if (currentWaterQtt < minGoal){
-        image = painterResource(id = R.drawable.plant_dry)
-    }else if (currentWaterQtt > maxGoal){
-        image = painterResource(id = R.drawable.plant_overwatered)
-    }
-    Image(
-        painter = image,
-        contentDescription = "Plant",
-        modifier = Modifier
-            .size(250.dp)
-    )
-}
 
 @Composable
 fun Instructions(text : String){
@@ -315,193 +174,24 @@ fun Instructions(text : String){
     )
 }
 
-
-
-@Composable
-fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit, suppressGlass: (Int) -> Unit){
-    //val glassesQuantities = intArrayOf(50, 200, 500, 200, 100)
-    var supressMode by remember { mutableStateOf(false) }
-
-    Row (
-        Modifier
-            //.padding(30.dp)
-            .fillMaxWidth()
-            .horizontalScroll(
-                state = rememberScrollState(),
-                enabled = true
-            )
-            //.height(30.dp)
-                ,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ){
-
-
-        for (qtt in glasses){
-            Box(
-
-            ){
-                GlassIcon(qtt, supressMode){ amount -> onDropWater(amount) }
-
-                if (supressMode){
-
-                    Button(
-                        modifier = Modifier
-                            .alpha(0.9f)
-                            .align(Alignment.Center)
-                            .width(80.dp)
-                        ,
-                        onClick = { suppressGlass(qtt) }
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.delete_icon),
-                            contentDescription = "Icone supprimer"
-                        )
-                    }
-                }
-            }
-
-        }
-
-
-        Column {
-
-        if (!supressMode){
-
-        Button(onClick = showDialog) { Text(text = "+", fontSize = 20.sp)}
-            Button(onClick = { supressMode = true }) { Text(text = "-", fontSize = 20.sp)}
-        }else{
-            Button(onClick = { supressMode = false }) { Text(text = "ok")}
-
-        }
-        }
-
-    }
-}
-
-@Composable
-fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
-
-    val context = LocalContext.current // Récupérer le contexte dans un composable
-    var image =painterResource(id = R.drawable.verre_petit)
-    if (qtt >50 && qtt<=300){image =painterResource(id = R.drawable.verre)}
-    if (qtt>300){image =painterResource(id = R.drawable.gourde)}
-
-    Column (
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {
-            if (!supressMode){
-                onDropWater(qtt.toFloat()) // Ajoute la quantité d'eau en cliquant
-            }
-        }
-    ){
-        Image(
-            painter = image,
-            contentDescription = "",
-            modifier = Modifier
-                .size(100.dp)
-        )
-        Text(
-            text = "$qtt",
-            textAlign = TextAlign.Center
-        )
-//        if(PreferenceHelper.getSys(context)){
-//            Text(
-//                text = "$qtt",
-//                textAlign = TextAlign.Center
-//            )
-//        }
-//        else{
-//            val imp = qtt/4546
-//            Text(
-//                text = "$imp",
-//                textAlign = TextAlign.Center
-//            )
-//        }
-    }
-}
-
 @Composable
 fun ResetButtons(empty: () -> Unit, revert : () -> Unit){
     Row (
     ){
-        Button(onClick = { empty() }    ) {
+        Button(onClick = { empty() }) {
             Text(text = "Vider")
         }
-        Button(onClick = { revert()}    ) {
+        Button(onClick = { revert()}) {
             Text(text = "Annuler")
         }
     }
 }
 
 
-
-//--------------------------------chatgpt drag and drop example-------------------------------------------
-@Composable
-fun DraggableBox() {
-    var offset by remember { mutableStateOf(Offset.Zero) }
-
-    Box(
-        modifier = Modifier
-            .offset { IntOffset(offset.x.roundToInt(), offset.y.roundToInt()) }
-            .size(100.dp)
-            .background(Color.Blue, shape = RoundedCornerShape(8.dp))
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume() // Consommer l'événement pour éviter le conflit avec d'autres gestes
-                    offset += dragAmount
-                }
-            }
-    )
-}
-
-@Composable
-fun DragAndDropScreen() {
-    var boxOffset by remember { mutableStateOf(Offset.Zero) }
-    val dropZone = remember { mutableStateOf(Rect.Zero) }
-    var isDropped by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        // Zone de Drop
-        Box(
-            modifier = Modifier
-                .size(150.dp)
-                .background(if (isDropped) Color.Green else Color.Gray, RoundedCornerShape(8.dp))
-                .onGloballyPositioned { coordinates ->
-                    dropZone.value = coordinates.boundsInParent()
-                }
-        )
-
-        // Élement Déplaçable
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(boxOffset.x.roundToInt(), boxOffset.y.roundToInt()) }
-                .size(100.dp)
-                .background(Color.Blue, shape = RoundedCornerShape(8.dp))
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragEnd = {
-                            isDropped = dropZone.value.contains(boxOffset)
-                        }
-                    ) { change, dragAmount ->
-                        change.consume()
-                        boxOffset += dragAmount
-                    }
-                }
-        )
-    }
-}
-
-
-
 @Preview(showBackground = true)
 @Composable
 fun Glasses() {
 
-    //PlantAndWater(9000, 1000, 2300)
+    PlantAndWater(9000, 1000, 2300, true, true)
     //DrinkSelectionPanel()
-    WaterGauge(200, 1000,2100, true)
 }
