@@ -86,7 +86,7 @@ fun PlantScreen(){
     }
 
     // Quantité d'eau consommée
-    var currentWaterQtt by remember { mutableIntStateOf(InitWater()) } // Quantité d'eau actuelle. TODO : acces à la DB
+    var currentWaterQtt by remember { mutableIntStateOf(InitWater()) } // Quantité d'eau actuelle.
     var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
     // Verres
@@ -102,7 +102,7 @@ fun PlantScreen(){
     }
 
 
-    var glassesQuantities  by remember { mutableStateOf(InitGlasses())}//listOf(50, 200, 500)) } // quantités des verres. TODO : acces à la DB
+    var glassesQuantities  by remember { mutableStateOf(InitGlasses())}//listOf(50, 200, 500)) } // quantités des verres.
     var showDialog by remember { mutableStateOf(false) } // Pop up créer verre custom
     var errorMessage by remember { mutableStateOf(false) } // Message d'erreur pop up
 
@@ -114,7 +114,7 @@ fun PlantScreen(){
     // modification du niveau d'eau de la jauge
     fun setCurrentWater(newQtt : Int){
         currentWaterQtt = newQtt
-        // TODO : update la DB
+        // update DB
         DataAccessObject.getDAO(context).saveValue(WATER_QUANTITY_KEY,newQtt.toString())
         DataAccessObject.getDAO(context).insertDay(Day(Date(System.currentTimeMillis()),newQtt.toFloat(),0))
     }
@@ -185,7 +185,8 @@ fun PlantScreen(){
                 glassesQuantities,
                 onDropWater ={ addedWater -> addWater(addedWater)},
                 showDialog ={showDialog = true},
-                suppressGlass = {quantity -> suppressGlass(quantity) })
+                suppressGlass = {quantity -> suppressGlass(quantity) },
+                isMetricSystem= isMetricSystem)
             }
         }
 
@@ -194,6 +195,7 @@ fun PlantScreen(){
         AddWaterDialog(
             showDialog = showDialog,
             onDismiss = {showDialog = false},
+            isMetricSystem = isMetricSystem,
             onAddCustomGlass = { quantity -> addGlass(quantity)})
     }
 }

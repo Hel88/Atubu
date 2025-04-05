@@ -93,8 +93,10 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
         {
             // Texte pour la quantité d'eau bue
             if (textDisplayedSetting){
+                var currentWaterQttText = "${(currentWaterQtt)}"
+                if (!metricSystem){currentWaterQttText =  "%.0f".format((currentWaterQtt/29.574).toFloat())}
                 Text(
-                    text = "${(currentWaterQtt)}",
+                    text = currentWaterQttText,
                     color = Color.White,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center,
@@ -125,11 +127,11 @@ fun WaterGauge(currentWaterQtt: Int, minGoal: Int, maxGoal: Int, textDisplayedSe
                 // texte avec la quantité au dessus de la ligne
                 if (textDisplayedSetting){
 
-                    // Système impérial
+                    // systeme metrique / imperial
                     var qttText = AnnotatedString( "${(position * maxCapacity/1000).toFloat()} L")
                     if (!metricSystem){
 
-                        qttText = AnnotatedString( "%.2f gal Imp".format((position * maxCapacity/4546).toFloat()))
+                        qttText = AnnotatedString( "%.0f oz".format((position * maxCapacity/29.574).toFloat()))
                     }
 
                     val textLayoutResult: TextLayoutResult =
