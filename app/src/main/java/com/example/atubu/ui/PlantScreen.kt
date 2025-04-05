@@ -53,12 +53,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.atubu.R
 import com.example.atubu.dataInterface.DataAccessObject
+import com.example.atubu.dataInterface.Day
 import com.example.atubu.dataInterface.PreferenceHelper
 import com.example.atubu.ui.components.AddWaterDialog
 import com.example.atubu.ui.components.DrinkSelectionPanel
 import com.example.atubu.ui.components.PlantAndWater
 import kotlin.math.min
 import kotlinx.coroutines.launch
+import java.sql.Date
 import kotlin.math.roundToInt
 
 @Composable
@@ -113,6 +115,7 @@ fun PlantScreen(){
         currentWaterQtt = newQtt
         // TODO : update la DB
         DataAccessObject.getDAO(context).saveValue(WATER_QUANTITY_KEY,newQtt.toString())
+        DataAccessObject.getDAO(context).insertDay(Day(Date(System.currentTimeMillis()),newQtt.toFloat(),0))
     }
 
     // Création verre qtt custom

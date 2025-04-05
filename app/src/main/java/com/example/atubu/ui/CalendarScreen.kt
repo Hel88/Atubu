@@ -56,8 +56,8 @@ class CalendarScreen : ComponentActivity() {
 fun ShowGarden(
     dao : DataAccessObject
 ) {
-    dao.insertDay(Day(Date(2025,3,1),500f, 1))
-    dao.insertDay(Day(Date(2025,3,2),700f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,1),500f, 1))
+    dao.insertDay(Day(Date(2025-1900,3,2),700f, 2))
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -288,7 +288,7 @@ private fun createCalendarList(
         )
     }
 
-    dao.getDaysBetween(Date(year,month,1), Date(year,month,calendar.getActualMaximum(Calendar.DAY_OF_MONTH)),
+    dao.getDaysBetween(Date(year-1900,month,1), Date(year-1900,month,calendar.getActualMaximum(Calendar.DAY_OF_MONTH)),
         callback = { result ->
             Log.d("message","Date : $year $month")
             Log.d("message","Result : $result $result.size")
