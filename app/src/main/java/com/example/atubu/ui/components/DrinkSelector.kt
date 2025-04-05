@@ -36,7 +36,7 @@ import com.example.atubu.R
 
 
 @Composable
-fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit, suppressGlass: (Int) -> Unit){
+fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit, suppressGlass: (Int) -> Unit, isMetricSystem : Boolean){
 
     var supressMode by remember { mutableStateOf(false) }
 
@@ -59,7 +59,11 @@ fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showD
             Box(
 
             ){
-                GlassIcon(qtt, supressMode){ amount -> onDropWater(amount) }
+                GlassIcon(
+                    qtt = qtt,
+                    supressMode = supressMode,
+                    isMetricSystem = isMetricSystem,
+                    ){ amount -> onDropWater(amount) }
 
                 if (supressMode){
 
@@ -100,6 +104,7 @@ fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showD
 @Composable
 fun AddWaterDialog(
     showDialog: Boolean,
+    isMetricSystem : Boolean,
     onDismiss: () -> Unit,
     onAddCustomGlass: (Int) -> Unit)
 {
@@ -113,7 +118,11 @@ fun AddWaterDialog(
         title = { Text("Ajouter un verre personnalisé") },
         text = {
             Column {
-                Text("Entrez la quantité en ml :")
+                if (isMetricSystem){
+                    Text("Entrez la quantité en ml :")
+                }else{
+                    Text("Entrez la quantité en oz :")
+                }
                 OutlinedTextField(
                     value = customGlassText,
                     onValueChange = { text ->
@@ -131,7 +140,12 @@ fun AddWaterDialog(
             Button(onClick = {
                 val qtt = customGlassText.toIntOrNull()
                 if (qtt != null && qtt > 0) {
-                    onAddCustomGlass(qtt)
+                    if (isMetricSystem){
+                        onAddCustomGlass(qtt)
+                    }else{
+                        // si quantité en oz, on la convertis en mL pour l'ajout dans la db
+                        onAddCustomGlass((qtt*29.574).toInt())
+                    }
                 }else{
                     errorMessage = true
                 }
@@ -148,7 +162,7 @@ fun AddWaterDialog(
 }
 
 @Composable
-fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
+fun GlassIcon(qtt : Int, supressMode : Boolean, isMetricSystem : Boolean, onDropWater: (Float) -> Unit){
 
     val context = LocalContext.current // Récupérer le contexte dans un composable
     var image = painterResource(id = R.drawable.verre_petit)
@@ -171,23 +185,12 @@ fun GlassIcon(qtt : Int, supressMode : Boolean, onDropWater: (Float) -> Unit){
             modifier = Modifier
                 .size(100.dp)
         )
+        var qttText = "$qtt"
+        if (!isMetricSystem){qttText = "%.0f".format((qtt/29.574).toFloat())}
         Text(
-            text = "$qtt",
+            text = qttText,
             textAlign = TextAlign.Center
         )
-//        if(PreferenceHelper.getSys(context)){
-//            Text(
-//                text = "$qtt",
-//                textAlign = TextAlign.Center
-//            )
-//        }
-//        else{
-//            val imp = qtt/4546
-//            Text(
-//                text = "$imp",
-//                textAlign = TextAlign.Center
-//            )
-//        }
     }
 }
 
