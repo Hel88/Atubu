@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -128,88 +131,115 @@ fun AtubuApp(
     )
     val image = painterResource(id = R.drawable.friend)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+        ModalNavigationDrawer(
 
-    ModalNavigationDrawer(
-        drawerContent = {
-            DismissibleDrawerSheet {
-                Column(
+            drawerContent = {
+                DismissibleDrawerSheet {
+                    Column(
+                        modifier = Modifier
+                            .width(LocalConfiguration.current.screenWidthDp.dp * 0.66f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Spacer(Modifier.height(12.dp))
+
+                        NavigationDrawerItem(
+
+                            label = { Text("Jardin") },
+                            selected = false,
+                            icon = { Icon(Icons.Outlined.DateRange, contentDescription = null) },
+                            onClick = { navController.navigate(AtubuScreen.Garden.name)
+                                scope.launch {
+                                    if (drawerState.isOpen) {
+                                        drawerState.close()
+                                    }
+                                }
+                            }
+                        )
+                        NavigationDrawerItem(
+                            label = { Text("Amis") },
+                            selected = false,
+                            icon = { Icon(painter = image, contentDescription = "friend", modifier = Modifier.size(24.dp)) },
+                            onClick = { navController.navigate(AtubuScreen.Friend.name)
+                                scope.launch {
+                                    if (drawerState.isOpen) {
+                                        drawerState.close()
+                                    }
+                                }
+                            }
+                        )
+                        NavigationDrawerItem(
+                            label = { Text("Succès") },
+                            selected = false,
+                            icon = { Icon(Icons.Outlined.Star, contentDescription = null) },
+                            onClick = { navController.navigate(AtubuScreen.Success.name)
+                                scope.launch {
+                                    if (drawerState.isOpen) {
+                                        drawerState.close()
+                                    }
+                                }
+                            }
+                        )
+                        NavigationDrawerItem(
+                            label = { Text("Paramètres") },
+                            selected = false,
+                            icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                            onClick = {navController.navigate(AtubuScreen.Setting.name)
+                                scope.launch {
+                                    if (drawerState.isOpen) {
+                                        drawerState.close()
+                                    }
+                                }
+                            }
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+                }
+            },
+            drawerState = drawerState
+        ) {
+
+            Scaffold(
+                topBar = {
+                    AtubuAppBar(
+                        currentScreen = currentScreen,
+                        canNavigateBack = navController.previousBackStackEntry != null,
+                        navigateUp = { navController.navigateUp()
+                                     },
+                        drawerState = drawerState,
+
+                    )
+                }
+            ) { innerPadding ->
+
+
+                NavHost(
+                    navController = navController,
+                    startDestination = AtubuScreen.Start.name,
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .verticalScroll(rememberScrollState())
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 ) {
-                    Spacer(Modifier.height(12.dp))
+                    composable(route = AtubuScreen.Garden.name) {
+                        ShowGarden(dao)
+                    }
+                    composable(route = AtubuScreen.Start.name) {
+                        PlantScreen()
+                    }
+                    composable(route = AtubuScreen.Setting.name) {
+                        StartSettingScreen(
+                            modifier = Modifier.fillMaxHeight()
+                        )
+                    }
+                    composable(route = AtubuScreen.Friend.name) {
+                        Friend()
+                    }
+                    composable(route = AtubuScreen.Success.name) {
+                        ComingSoonScreen()
+                    }
 
-                    NavigationDrawerItem(
-                        label = { Text("Jardin") },
-                        selected = false,
-                        icon = { Icon(Icons.Outlined.DateRange, contentDescription = null) },
-                        onClick = { navController.navigate(AtubuScreen.Garden.name)}
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Amis") },
-                        selected = false,
-                        icon = { Icon(painter = image, contentDescription = "friend", modifier = Modifier.size(24.dp)) },
-                        onClick = { navController.navigate(AtubuScreen.Friend.name)}
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Succès") },
-                        selected = false,
-                        icon = { Icon(Icons.Outlined.Star, contentDescription = null) },
-                        onClick = { navController.navigate(AtubuScreen.Success.name)}
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Paramètres") },
-                        selected = false,
-                        icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-                        onClick = {navController.navigate(AtubuScreen.Setting.name)}
-                    )
-                    Spacer(Modifier.height(12.dp))
+
                 }
-            }
-        },
-        drawerState = drawerState
-    ) {
-
-        Scaffold(
-            topBar = {
-                AtubuAppBar(
-                    currentScreen = currentScreen,
-                    canNavigateBack = navController.previousBackStackEntry != null,
-                    navigateUp = { navController.navigateUp() },
-                    drawerState = drawerState,
-
-                )
-            }
-        ) { innerPadding ->
-
-
-            NavHost(
-                navController = navController,
-                startDestination = AtubuScreen.Start.name,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                composable(route = AtubuScreen.Garden.name) {
-                    ShowGarden(dao)
-                }
-                composable(route = AtubuScreen.Start.name) {
-                    PlantScreen()
-                }
-                composable(route = AtubuScreen.Setting.name) {
-                    StartSettingScreen(
-                        modifier = Modifier.fillMaxHeight()
-                    )
-                }
-                composable(route = AtubuScreen.Friend.name) {
-                    Friend()
-                }
-                composable(route = AtubuScreen.Success.name) {
-                    ComingSoonScreen()
-                }
-
-
             }
         }
-    }
 }

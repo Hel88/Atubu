@@ -18,6 +18,10 @@ import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.theme.AtubuTheme
 import kotlin.jvm.java
 import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.os.Handler
+import android.os.Looper
 import android.widget.RemoteViews
 import androidx.compose.material3.Button
 import androidx.core.app.NotificationManagerCompat
@@ -56,18 +60,53 @@ class MainActivity : AppCompatActivity() {
         notifInterface.singleNotification("Hydrates-toi !","N'oublie pas de boire de l'eau.")
 
 
-
-
-
-
 //        dataAccessObject = DataAccessObject(applicationContext)
 //        dataAccessObject = DataAccessObject(applicationContext)
 //        helloView = findViewById(R.id.HelloDisplay)
 //        helloView.text = dataAccessObject.incrementTest()
 
     }
+    override fun onStop() {
+        super.onStop()
+        forceWidgetUpdate()
+    }
 
+    override fun onPause() {
+        super.onPause()
+        forceWidgetUpdate()
+    }
 
+    override fun onResume() {
+        super.onResume()
+        forceWidgetUpdate()
+    }
+
+    private fun forceWidgetUpdate() {
+        // 1. Mettre à jour via Glance
+        MyAppWidget.updateAllWidgets(applicationContext)
+
+        // 2. Forcer une mise à jour via AppWidgetManager (méthode traditionnelle)
+        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        val componentName = ComponentName(applicationContext, MyAppWidgetReceiver::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+
+        if (appWidgetIds.isNotEmpty()) {
+            // Envoyer un broadcast pour forcer la mise à jour
+            val intent = Intent(applicationContext, MyAppWidgetReceiver::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+            }
+            applicationContext.sendBroadcast(intent)
+
+            // 3. Forcer un rafraîchissement direct des widgets
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, android.R.id.list)
+        }
+
+        // 4. Utiliser un Handler avec délai pour s'assurer que la mise à jour est appliquée
+        Handler(Looper.getMainLooper()).postDelayed({
+            MyAppWidget.updateAllWidgets(applicationContext)
+        }, 500) // 500ms de délai
+    }
 
 
 //

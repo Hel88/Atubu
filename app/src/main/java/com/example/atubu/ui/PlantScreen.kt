@@ -51,6 +51,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import com.example.atubu.MyAppWidget
 import com.example.atubu.R
 import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.dataInterface.Day
@@ -147,6 +148,8 @@ fun PlantScreen(){
     fun addWater(addedWater: Float) {
         setCurrentWater((currentWaterQtt + addedWater).toInt())
         history = history + addedWater.toInt() // ajout à l'historique
+        // Mettre à jour le widget
+        MyAppWidget.updateAllWidgets(context)
     }
 
     fun revertAction(){
@@ -209,12 +212,16 @@ fun Instructions(text : String){
 
 @Composable
 fun ResetButtons(empty: () -> Unit, revert : () -> Unit){
+    val context = LocalContext.current // accès DB
     Row (
     ){
-        Button(onClick = { empty() }) {
+        Button(onClick = { empty() // Mettre à jour le widget
+            MyAppWidget.updateAllWidgets(context)}) {
             Text(text = "Vider")
         }
-        Button(onClick = { revert()}) {
+        Button(onClick = { revert()
+            MyAppWidget.updateAllWidgets(context)
+        }) {
             Text(text = "Annuler")
         }
     }

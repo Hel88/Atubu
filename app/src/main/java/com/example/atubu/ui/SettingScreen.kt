@@ -252,7 +252,7 @@ fun HydratPart() {
                 }
             )
             Column {
-                Text(text = "Système métrique", fontWeight = FontWeight.Bold)
+                Text(text = "Système Litres", fontWeight = FontWeight.Bold)
 
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -269,7 +269,7 @@ fun HydratPart() {
                 }
             )
             Column {
-                Text(text = "Système impérial", fontWeight = FontWeight.Bold)
+                Text(text = "Système once (oZ)", fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.weight(1f))
 
