@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.atubu.R
+import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.dataInterface.PreferenceHelper
 import com.example.atubu.ui.components.AddWaterDialog
 import com.example.atubu.ui.components.DrinkSelectionPanel
@@ -76,17 +77,33 @@ fun PlantScreen(){
     var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
     // Verres
-    var glassesQuantities by remember { mutableStateOf(listOf(50, 200, 500)) } // quantités des verres. TODO : acces à la DB
+    val GLASS_QUANTITY_KEY = "glass_quantity"
+
+    fun InitGlasses() : List<Int>{
+        var str = DataAccessObject.getDAO(context).getValue(GLASS_QUANTITY_KEY)
+        if (str == "Not found") {
+            str = "[50, 200, 500]"
+        }
+        val glassesQuantities = str.trim('[', ']').split(",").map { it.trim().toInt() }
+        return glassesQuantities
+    }
+
+
+    var glassesQuantities  by remember { mutableStateOf(InitGlasses())}//listOf(50, 200, 500)) } // quantités des verres. TODO : acces à la DB
     var showDialog by remember { mutableStateOf(false) } // Pop up créer verre custom
     var errorMessage by remember { mutableStateOf(false) } // Message d'erreur pop up
 
 
+
     // -------- FONCTIONS QUI ACCEDENT A LA DB------------------------------------
+
 
     // modification du niveau d'eau de la jauge
     fun setCurrentWater(newQtt : Int){
         currentWaterQtt = newQtt
         // TODO : update la DB
+        var value = glassesQuantities.toString()
+        DataAccessObject.getDAO(context).saveValue(GLASS_QUANTITY_KEY,value)
     }
 
     // Création verre qtt custom
@@ -96,15 +113,19 @@ fun PlantScreen(){
             return
         }
         glassesQuantities = glassesQuantities + quantity
-        // TODO : update la DB
+
+        var value = glassesQuantities.toString()
+        DataAccessObject.getDAO(context).saveValue(GLASS_QUANTITY_KEY,value)
+
         showDialog = false
     }
 
-    // Suppression verre qtt custom
+    // Suppression verre qtt
     fun suppressGlass(quantity : Int){
         if (quantity !in glassesQuantities) return // si ce verre n'est pas dans la liste
         glassesQuantities = glassesQuantities - quantity
-        // TODO : update la DB
+        var value = glassesQuantities.toString()
+        DataAccessObject.getDAO(context).saveValue(GLASS_QUANTITY_KEY,value)
     }
 
     // --------------------------------------------------------------------------
