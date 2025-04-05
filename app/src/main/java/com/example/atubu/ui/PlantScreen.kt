@@ -72,8 +72,18 @@ fun PlantScreen(){
     val textDisplayedSetting = PreferenceHelper.getBool(context) // Paramètre texte affiché
     val isMetricSystem = PreferenceHelper.getSys(context) // Paramètre système métrique
 
+    val WATER_QUANTITY_KEY = "water_quantity"
+
+    fun InitWater() : Int{
+        var str = DataAccessObject.getDAO(context).getValue(WATER_QUANTITY_KEY)
+        if (str == "Not found") {
+            str = "0"
+        }
+        return str.toInt()
+    }
+
     // Quantité d'eau consommée
-    var currentWaterQtt by remember { mutableIntStateOf(0) } // Quantité d'eau actuelle. TODO : acces à la DB
+    var currentWaterQtt by remember { mutableIntStateOf(InitWater()) } // Quantité d'eau actuelle. TODO : acces à la DB
     var history by remember { mutableStateOf(listOf<Int>()) }  // Liste des valeurs ajoutées
 
     // Verres
@@ -102,8 +112,7 @@ fun PlantScreen(){
     fun setCurrentWater(newQtt : Int){
         currentWaterQtt = newQtt
         // TODO : update la DB
-        var value = glassesQuantities.toString()
-        DataAccessObject.getDAO(context).saveValue(GLASS_QUANTITY_KEY,value)
+        DataAccessObject.getDAO(context).saveValue(WATER_QUANTITY_KEY,newQtt.toString())
     }
 
     // Création verre qtt custom
