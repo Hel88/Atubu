@@ -36,6 +36,8 @@ import com.example.atubu.theme.*
 import java.sql.Date
 import java.time.LocalDate
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.util.lerp
 
 private const val ROWS = 6
 private const val COLS = 7
@@ -58,6 +60,8 @@ fun ShowGarden(
 ) {
     dao.insertDay(Day(Date(2025-1900,3,1),500f, 1))
     dao.insertDay(Day(Date(2025-1900,3,2),700f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,3),900f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,4),200f, 2))
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -127,7 +131,7 @@ private fun CalendarDisplay(
 
             Text(
                 text = getMonthString(currentMonth) + " " + currentYear,
-                color = md_theme_light_scrim,
+                // color = md_theme_light_scrim,
                 textAlign = TextAlign.Center,
                 style = Typography.bodyLarge
             )
@@ -178,6 +182,30 @@ private fun CalendarDisplay(
             val col = (clickAnimationOffset.x / canvasWidth * COLS).toInt() + 1
             val row = (clickAnimationOffset.y / canvasHeight * ROWS).toInt() + 1
 
+            drawRoundRect(
+                md_theme_light_primary,
+                cornerRadius = CornerRadius(10f, 10f),
+                style = Stroke(width = strokeWidth)
+            )
+
+            // Draw colored rectangles on calendar items
+            for (i in calendarInput.indices) {
+                val posX = xsteps * ((i + currentFirst) % COLS) + (strokeWidth / 2)
+                val posY = ((i + currentFirst) / COLS) * ysteps + (strokeWidth / 2)
+
+                var col : Color = colorLerp(md_theme_light_error, md_theme_light_primary, (calendarInput[i].value!! / calendarInput[i].objective!!))
+
+                if (calendarInput[i].isToday) col = Color.Blue
+                else if (calendarInput[i].value == 0f) col = Color.Gray
+
+                drawRect(
+                    color = col,
+                    topLeft = Offset(posX, posY),
+                    size = Size(xsteps - strokeWidth, ysteps - strokeWidth)
+                )
+            }
+
+
             // Masque de l'animation
             val path = Path().apply {
                 moveTo((col - 1) * xsteps, (row - 1) * ysteps)
@@ -198,12 +226,6 @@ private fun CalendarDisplay(
                     center = clickAnimationOffset
                 )
             }
-
-            drawRoundRect(
-                md_theme_light_primary,
-                cornerRadius = CornerRadius(10f, 10f),
-                style = Stroke(width = strokeWidth)
-            )
 
             for (i in 1 until ROWS) {
                 drawLine(
@@ -258,7 +280,7 @@ private fun CalendarDisplay(
     Text(
         text = waterDrunk,
         modifier = Modifier.fillMaxWidth(),
-        color = md_theme_light_scrim,
+        // color = md_theme_light_scrim,
         textAlign = TextAlign.Center,
         style = Typography.bodyLarge
     )
@@ -326,6 +348,27 @@ private fun getMonthString(
         11 -> return "Décembre"
     }
     return "Unknown"
+}
+
+fun colorLerp(start: Color, stop: Color, /*@FloatRange(from = 0.0, to = 1.0)*/ fraction: Float): Color {
+
+    val startAlpha = start.alpha
+    val startL = start.red
+    val startA = start.green
+    val startB = start.blue
+
+    val endAlpha = stop.alpha
+    val endL = stop.red
+    val endA = stop.green
+    val endB = stop.blue
+
+    val interpolated = Color(
+        alpha = lerp(startAlpha, endAlpha, fraction),
+        red = lerp(startL, endL, fraction),
+        green = lerp(startA, endA, fraction),
+        blue = lerp(startB, endB, fraction),
+    )
+    return interpolated
 }
 
 data class CalendarInput(
