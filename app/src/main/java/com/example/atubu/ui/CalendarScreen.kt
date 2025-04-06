@@ -81,17 +81,19 @@ fun ShowGarden(
 @Composable
 private fun CalendarDisplay(
     strokeWidth: Float = 15f,
+    day : Int = Calendar.getInstance().get(Calendar.DAY_OF_MONTH),
     month : Int = Calendar.getInstance().get(Calendar.MONTH),
     year : Int = Calendar.getInstance().get(Calendar.YEAR),
     firstDay : Int = LocalDate.of(year, month + 1, 1).dayOfWeek.value - 1,
     dao : DataAccessObject
 ) {
-
+    var currentDay by remember { mutableIntStateOf(day) }
     var currentMonth by remember { mutableIntStateOf(month) }
     var currentYear by remember { mutableIntStateOf(year) }
     var currentFirst by remember { mutableIntStateOf(firstDay) }
 
     val calendarInput by remember { mutableStateOf(createCalendarList(
+        currentDay,
         currentMonth,
         currentYear,
         currentYear ==  Calendar.getInstance().get(Calendar.YEAR) && currentMonth == Calendar.getInstance().get(Calendar.MONTH),
@@ -287,6 +289,7 @@ private fun CalendarDisplay(
 }
 
 private fun createCalendarList(
+    day : Int,
     month : Int,
     year : Int,
     isThisMonth : Boolean,
@@ -295,7 +298,7 @@ private fun createCalendarList(
 
     val calendar = Calendar.getInstance()
 
-    calendar.set(year, month, 1)
+    calendar.set(year, month, day)
 
     val calendarInputs = mutableListOf<CalendarInput>()
 
@@ -303,7 +306,7 @@ private fun createCalendarList(
         calendarInputs.add(
             CalendarInput(
                 i,
-                if(isThisMonth) i == calendar.get(Calendar.DAY_OF_MONTH)+1 else false,
+                if(isThisMonth) i == day else false,
                 0f,
                 1000
             )
