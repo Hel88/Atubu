@@ -116,7 +116,10 @@ fun PlantScreen(){
         currentWaterQtt = newQtt
         // update DB
         DataAccessObject.getDAO(context).saveValue(WATER_QUANTITY_KEY,newQtt.toString())
-        DataAccessObject.getDAO(context).insertDay(Day(Date(System.currentTimeMillis()),newQtt.toFloat(),0))
+        val MILLISEC_IN_DAY = 24*60*60*1000
+        val currentMillis = System.currentTimeMillis()
+        val beginDay : Date = Date(currentMillis - (currentMillis%MILLISEC_IN_DAY) +MILLISEC_IN_DAY)
+        DataAccessObject.getDAO(context).insertDay(Day(beginDay,newQtt.toFloat(),0))
     }
 
     // Création verre qtt custom
