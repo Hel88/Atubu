@@ -1,5 +1,7 @@
 package com.example.atubu.ui
 
+import android.R.attr.text
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -34,10 +38,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
 import com.example.atubu.R
 import com.example.atubu.dataInterface.PreferenceHelper
+import kotlinx.coroutines.delay
 
 
 @Preview
@@ -216,8 +228,12 @@ fun HydratPart() {
         Text("Afficher les quantités d'eau",fontSize = 15.sp)
     }
 
-    var textValueMin by remember { mutableStateOf("") }
+
     var textValueMax by remember { mutableStateOf("") }
+    var isFocused by remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     var showDialogMin by remember { mutableStateOf(false) }
     var showDialogMax by remember { mutableStateOf(false) }
 
@@ -285,32 +301,20 @@ fun HydratPart() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Quantité minimale",
+                text = "Quantité Maximale",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f) // Permet un grand espace
             )
 
-            TextField(
-                value = textValueMin,
-                onValueChange = { newText ->
-                    textValueMin = newText // Met à jour l'affichage du TextField
-                    if(textValueMin.toInt() > PreferenceHelper.getMax(context)){
-                        showDialogMin = true
-                    }
-                    else {
-                        newText.toIntOrNull()?.let { newValue ->  // Convertir en Int si possible
-                            PreferenceHelper.setMin(context, newValue) // Stocker dans SharedPreferences
-                        }
-                    }
-
-                },
-                modifier = Modifier
-                    .width(65.dp) // Boîte plus compacte
-                    .height(50.dp), // Hauteur réduite
-                textStyle = TextStyle(fontSize = 16.sp, textAlign = TextAlign.Center),
-                singleLine = true
-            )
+            IntInputField(initialValue = 2000) { value ->
+                if(value.toInt() < PreferenceHelper.getMin(context)){
+                    showDialogMax = true
+                }
+                else{
+                    PreferenceHelper.setMax(context, value)
+                }
+            }
         }
         Row(
             modifier = Modifier
@@ -319,32 +323,22 @@ fun HydratPart() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Quantité Maximale",
+                text = "Quantité Minimale",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f) // Permet un grand espace
             )
 
 
-            TextField(
-                value = textValueMax,
-                onValueChange = { newText ->
-                    textValueMax = newText // Met à jour l'affichage du TextField
-                    if(textValueMax.toInt() < PreferenceHelper.getMin(context)){
-                        showDialogMax = true
-                    }
-                    else {
-                        newText.toIntOrNull()?.let { newValue ->  // Convertir en Int si possible
-                            PreferenceHelper.setMax(context, newValue) // Stocker dans SharedPreferences
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .width(65.dp) // Boîte plus compacte
-                    .height(50.dp), // Hauteur réduite
-                textStyle = TextStyle(fontSize = 16.sp, textAlign = TextAlign.Center),
-                singleLine = true
-            )
+
+            IntInputField(initialValue = 1300) { value ->
+                if(value.toInt() > PreferenceHelper.getMax(context)){
+                    showDialogMin = true
+                }
+                else {
+                    PreferenceHelper.setMin(context, value)
+                }
+            }
         }
     }
 }
@@ -378,5 +372,58 @@ fun MyAlertDialogMax(showDialogMax: Boolean, onDismiss: () -> Unit, onConfirm: (
             },
         )
     }
+}
+
+@Composable
+fun IntInputField(
+    initialValue: Int,
+    onValueConfirmed: (Int) -> Unit
+) {
+    var text by remember { mutableStateOf(initialValue.toString()) }
+    var isFocused by remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        delay(300) // Un petit délai pour laisser Compose respirer
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+    val focusManager = LocalFocusManager.current
+
+    TextField(
+        value = text,
+        onValueChange = { newText ->
+            // Ne prend que les chiffres (évite les crashs de .toInt())
+            if (newText.all { it.isDigit() }) {
+                text = newText
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus() // quitte le champ
+                text.toIntOrNull()?.let { onValueConfirmed(it) }
+            }
+        ),
+        modifier = Modifier
+            .focusRequester(focusRequester)
+            .onFocusChanged {
+                if (isFocused && !it.isFocused) {
+                    // Perte de focus → on considère que c’est confirmé
+                    text.toIntOrNull()?.let { value -> onValueConfirmed(value) }
+                }
+                isFocused = it.isFocused
+            }
+            .width(100.dp) // Boîte plus compacte
+            .height(50.dp), // Hauteur réduite
+
+        textStyle = TextStyle(fontSize = 16.sp, textAlign = TextAlign.Center),
+        singleLine = true
+    )
 }
 
