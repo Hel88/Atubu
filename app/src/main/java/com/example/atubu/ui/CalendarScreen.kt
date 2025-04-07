@@ -92,7 +92,7 @@ private fun CalendarDisplay(
     var currentYear by remember { mutableIntStateOf(year) }
     var currentFirst by remember { mutableIntStateOf(firstDay) }
 
-    val calendarInput by remember { mutableStateOf(createCalendarList(
+    var calendarInput by remember { mutableStateOf(createCalendarList(
         currentDay,
         currentMonth,
         currentYear,
@@ -125,6 +125,12 @@ private fun CalendarDisplay(
                         currentYear--
                     }
                     currentFirst = LocalDate.of(currentYear, currentMonth + 1, 1).dayOfWeek.value - 1
+                    calendarInput = createCalendarList(
+                        currentDay,
+                        currentMonth,
+                        currentYear,
+                        currentYear ==  Calendar.getInstance().get(Calendar.YEAR) && currentMonth == Calendar.getInstance().get(Calendar.MONTH),
+                        dao)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = md_theme_light_primary)
             ) {
@@ -147,6 +153,12 @@ private fun CalendarDisplay(
                         currentYear++
                     }
                     currentFirst = LocalDate.of(currentYear, currentMonth + 1, 1).dayOfWeek.value - 1
+                    calendarInput = createCalendarList(
+                        currentDay,
+                        currentMonth,
+                        currentYear,
+                        currentYear ==  Calendar.getInstance().get(Calendar.YEAR) && currentMonth == Calendar.getInstance().get(Calendar.MONTH),
+                        dao)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = md_theme_light_primary)
             ) {
@@ -190,7 +202,7 @@ private fun CalendarDisplay(
                 style = Stroke(width = strokeWidth)
             )
 
-            // Draw colored rectangles on calendar items
+            // Carrés colorés
             for (i in calendarInput.indices) {
                 val posX = xsteps * ((i + currentFirst) % COLS) + (strokeWidth / 2)
                 val posY = ((i + currentFirst) / COLS) * ysteps + (strokeWidth / 2)
@@ -206,7 +218,6 @@ private fun CalendarDisplay(
                     size = Size(xsteps - strokeWidth, ysteps - strokeWidth)
                 )
             }
-
 
             // Masque de l'animation
             val path = Path().apply {
@@ -229,6 +240,8 @@ private fun CalendarDisplay(
                 )
             }
 
+
+            // Lignes
             for (i in 1 until ROWS) {
                 drawLine(
                     color = md_theme_light_primary,
