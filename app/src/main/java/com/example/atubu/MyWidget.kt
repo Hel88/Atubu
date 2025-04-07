@@ -11,6 +11,7 @@ import androidx.glance.GlanceId
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -27,25 +28,27 @@ class MyAppWidget: GlanceAppWidget() {
         private val coroutineScope = MainScope()
 
         fun updateAllWidgets(context: Context) {
+            Log.d("DEBUG","Lancement coroutine")
             coroutineScope.launch {
                 try {
-                    // Forcer une mise à jour de toutes les instances
-                    MyAppWidget().updateAll(context)
+                    Log.d("DEBUG", "Maj dans coroutine")
 
-                    // Envoyer un broadcast supplémentaire pour s'assurer que la mise à jour est appliquée
-                    val appWidgetManager = AppWidgetManager.getInstance(context)
-                    val componentName = ComponentName(context, MyAppWidgetReceiver::class.java)
-                    val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+                    // Get all GlanceIds for your widget
+                    val glanceIds = GlanceAppWidgetManager(context).getGlanceIds(MyAppWidget::class.java)
+                    Log.d("DEBUG", "Found ${glanceIds.size} glance IDs")
 
-                    if (appWidgetIds.isNotEmpty()) {
-                        val intent = Intent(context, MyAppWidgetReceiver::class.java).apply {
-                            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
-                        }
-                        context.sendBroadcast(intent)
+                    // Update each widget instance individually
+                    glanceIds.forEach { glanceId ->
+                        Log.d("DEBUG", "Updating widget ID: $glanceId")
+                        MyAppWidget().update(context, glanceId)
                     }
+
+                    Log.d("DEBUG", "Après update ALL")
+
+                    // Your existing broadcast code...
                 } catch (e: Exception) {
                     Log.e("MyAppWidget", "Error updating widgets: ${e.message}")
+                    e.printStackTrace() // Add stack trace for more details
                 }
             }
         }
