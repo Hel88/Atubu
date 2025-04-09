@@ -62,6 +62,10 @@ fun ShowGarden(
     dao.insertDay(Day(Date(2025-1900,3,2),700f, 2))
     dao.insertDay(Day(Date(2025-1900,3,3),900f, 2))
     dao.insertDay(Day(Date(2025-1900,3,4),200f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,5),350f, 1))
+    dao.insertDay(Day(Date(2025-1900,3,6),800f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,7),995f, 2))
+    dao.insertDay(Day(Date(2025-1900,3,8),150f, 2))
 
     Box(
         modifier = Modifier.fillMaxSize(),
