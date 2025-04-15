@@ -19,14 +19,21 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.atubu.MainActivity
 import android.Manifest
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 //import com.example.atubu.Manifest
 import kotlinx.coroutines.delay
 import kotlin.properties.Delegates
 import com.example.atubu.R
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 
-class NotificationWorker(private val context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
+class DailyNotificationWorker(private val context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
 
     private val notificationChannelId = "NotificationWorkerChannelId"
 
@@ -83,21 +90,61 @@ class NotificationWorker(private val context: Context, workerParams: WorkerParam
 
 
     override suspend fun doWork(): Result {
-        //delay(500) //simulate background task
-        print("work Done")
-        Log.d("DemoWorker", "do work done!")
         if(ActivityCompat.checkSelfPermission(
-            context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
         ){
 
-        with(NotificationManagerCompat.from(applicationContext)) {
-            notify(0, createNotification())
+            with(NotificationManagerCompat.from(applicationContext)) {
+                notify(0, createNotification())
+            }
         }
-    }
+        delay(2000)
+        val hour = inputData.getInt("Hour", 12)
+        val minute = inputData.getInt("Minute", 0)
+        val second = inputData.getInt("Second", 0)
+
+        val currentDate = Calendar.getInstance()
+        val dueDate = Calendar.getInstance()    // Set Execution around 05:00:00 AM
+        dueDate.set(Calendar.HOUR_OF_DAY, hour)
+        dueDate.set(Calendar.MINUTE, minute)
+        dueDate.set(Calendar.SECOND, second)
+        if (dueDate.before(currentDate)) {
+            dueDate.add(Calendar.HOUR_OF_DAY, 24)
+        }
+
+
+        val title = inputData.getString("Title")
+        val text = inputData.getString("Text")
+
+        val inputData = Data.Builder()
+            .putString("Title", title)
+            .putString("Text", text)
+            .putInt("Hour", hour)
+            .putInt("Minute", minute)
+            .putInt("Second", second)
+            .build()
+
+        val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
+        val constraints = Constraints.Builder().build()
+
+        val dailyWorkRequest = OneTimeWorkRequestBuilder<DailyNotificationWorker>()
+            .setConstraints(constraints)
+            .setInputData(inputData)
+            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
+            .build()
+
+        var workManager = WorkManager.getInstance(context)
+        val workName = "NotifWorker"
+
+        workManager.enqueueUniqueWork(
+            workName,
+            ExistingWorkPolicy.REPLACE,
+            dailyWorkRequest
+        )
+
         return Result.success()
+
     }
-
-
 
 }
