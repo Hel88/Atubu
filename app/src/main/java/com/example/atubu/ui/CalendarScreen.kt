@@ -37,7 +37,12 @@ import java.sql.Date
 import java.time.LocalDate
 import android.util.Log
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.util.lerp
+import com.example.atubu.R
 
 private const val ROWS = 6
 private const val COLS = 7
@@ -54,7 +59,7 @@ class CalendarScreen : ComponentActivity() {
 }
 
 @Composable
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 fun ShowGarden(
     dao : DataAccessObject
 ) {
@@ -111,8 +116,12 @@ private fun CalendarDisplay(
 
     val scope = rememberCoroutineScope()
 
+    val healthy_plant_painter = painterResource(id = R.drawable.plant_healthy)
+    val dry_plant_painter = painterResource(id = R.drawable.plant_dry)
+    val overwatered_plant_painter = painterResource(id = R.drawable.plant_overwatered)
+
     Column(
-        modifier = Modifier.fillMaxWidth().padding(10.dp).aspectRatio(1.1f),
+        modifier = Modifier.fillMaxWidth().padding(10.dp).aspectRatio(0.6f),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
@@ -211,16 +220,40 @@ private fun CalendarDisplay(
                 val posX = xsteps * ((i + currentFirst) % COLS) + (strokeWidth / 2)
                 val posY = ((i + currentFirst) / COLS) * ysteps + (strokeWidth / 2)
 
-                var col : Color = colorLerp(md_theme_light_error, md_theme_light_primary, (calendarInput[i].value!! / calendarInput[i].objective!!))
+                //var col : Color = colorLerp(md_theme_light_error, md_theme_light_primary, (calendarInput[i].value!! / calendarInput[i].objective!!))
+
+                var col = Color.Gray
+
+                if (calendarInput[i].value!! >= calendarInput[i].objective.toFloat()){
+                    col = Color.Green
+                }
 
                 if (calendarInput[i].isToday) col = Color.Blue
-                else if (calendarInput[i].value == 0f) col = Color.Gray
+                //else if (calendarInput[i].value == 0f) col = Color.Gray
 
                 drawRect(
                     color = col,
                     topLeft = Offset(posX, posY),
                     size = Size(xsteps - strokeWidth, ysteps - strokeWidth)
                 )
+
+                val painter = if (calendarInput[i].value!! < calendarInput[i].objective.toFloat()) {
+                    dry_plant_painter
+                } else {
+                    healthy_plant_painter
+                }
+                with(painter) {
+                    with(drawContext.canvas) {
+                        save() // Sauver l'état actuel
+                        translate(dx = posX, dy = posY +50)
+                        draw(size = Size(140f, 140f), alpha = 1f)
+                        restore() // Revenir à l'état initial
+                    }
+                }
+
+
+
+
             }
 
             // Masque de l'animation
