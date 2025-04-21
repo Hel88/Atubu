@@ -47,8 +47,11 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
+import androidx.room.Database
 import com.example.atubu.R
+import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.dataInterface.PreferenceHelper
+import com.example.atubu.notifications.NotificationInterface
 import kotlinx.coroutines.delay
 
 
@@ -94,6 +97,7 @@ fun UserProfileSection() {
 fun NotifPart() {
     var checked by remember { mutableStateOf(true) }
 
+    val context = LocalContext.current;
 
     Column(){
         Text(text = "Notifications", fontSize = 30.sp)
@@ -157,8 +161,20 @@ fun NotifPart() {
             )
 
             TextField(
-                value = "23h",
-                onValueChange = { },
+                value = "8",
+                onValueChange = {newText ->
+                    if (newText.all { it.isDigit() }) {
+                        value = newText
+                    }
+                    val dao = DataAccessObject.getDAO(context).saveValue("minValue", text)
+
+                    val notifInterface = NotificationInterface(context)
+                    notifInterface.scheduledelayNotifications("Hydrates-toi !","N'oublie pas de boire de l'eau.")
+
+
+
+
+                                },
                 modifier = Modifier
                     .width(65.dp) // Boîte plus compacte
                     .height(50.dp), // Hauteur réduite
