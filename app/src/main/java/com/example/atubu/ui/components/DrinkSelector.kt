@@ -39,7 +39,6 @@ import com.example.atubu.R
 fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showDialog: ()-> Unit, suppressGlass: (Int) -> Unit, isMetricSystem : Boolean){
 
     var supressMode by remember { mutableStateOf(false) }
-
     Row (
         Modifier
             //.padding(30.dp)
@@ -55,7 +54,7 @@ fun DrinkSelectionPanel( glasses: List<Int>, onDropWater: (Float) -> Unit, showD
     ){
 
 
-        for (qtt in glasses){
+        for (qtt in glasses.sorted()){
             Box(
 
             ){
