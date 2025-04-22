@@ -96,6 +96,7 @@ public class NotificationInterface(private val context : Context) {
     public fun scheduledelayNotifications(title: String, text: String) {
 
 
+
         var minHour = DataAccessObject.getDAO(context).getValue("minHour").toIntOrNull();
         if(minHour == null){
             minHour = 8;

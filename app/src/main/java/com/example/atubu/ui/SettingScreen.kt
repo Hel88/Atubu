@@ -116,18 +116,24 @@ fun NotifPart() {
         Text("Activer les notifications",fontSize = 15.sp)
 
     }
-    var selectedReminderType by remember { mutableStateOf("regular")}
+    val initialValue = DataAccessObject.getDAO(context).getValue("notification")
+    var selectedReminderType by remember { mutableStateOf(initialValue)}
     Column()
     {
         Row (verticalAlignment = Alignment.CenterVertically)
         {
             RadioButton(
                 selected = selectedReminderType == "regular",
-                onClick = { selectedReminderType = "regular" }
+                onClick = { selectedReminderType = "regular"
+                    DataAccessObject.getDAO(context).saveValue("notification","regular")
+                    val notifInterface = NotificationInterface(context)
+                    notifInterface.scheduledelayNotifications("Hey es-tu bien hydraté ?", "Boire de l'eau prends peu de temps et peut faire une différence dans ta journée")
+
+                }
             )
             Column {
                 Text(text = "Rappels réguliers", fontWeight = FontWeight.Bold)
-                Text(text = "Toutes les X heures", fontSize = 12.sp, color = Color.Gray)
+                Text(text = "Toutes les 3 heures", fontSize = 12.sp, color = Color.Gray)
             }
             Spacer(modifier = Modifier.weight(1f))
 
@@ -137,11 +143,16 @@ fun NotifPart() {
         {
             RadioButton(
                 selected = selectedReminderType == "smart",
-                onClick = { selectedReminderType = "smart" }
+                onClick = { selectedReminderType = "smart"
+
+                    DataAccessObject.getDAO(context).saveValue("notification","smart")
+                    val notifInterface = NotificationInterface(context)
+                    notifInterface.scheduledelayNotifications("Hey es-tu bien hydraté ?", "Cela fait 3h que tu n'as pas bu, tu devrais peut être prendre un verre")
+                }
             )
             Column {
                 Text(text = "Rappels intelligents", fontWeight = FontWeight.Bold)
-                Text(text = "Quand on n'a pas bu d'eau depuis X heures", fontSize = 12.sp, color = Color.Gray)
+                Text(text = "Quand on n'a pas bu d'eau depuis 3 heures", fontSize = 12.sp, color = Color.Gray)
             }
             Spacer(modifier = Modifier.weight(1f))
 
@@ -162,19 +173,7 @@ fun NotifPart() {
 
             TextField(
                 value = "8",
-                onValueChange = {newText ->
-                    if (newText.all { it.isDigit() }) {
-                        value = newText
-                    }
-                    val dao = DataAccessObject.getDAO(context).saveValue("minValue", text)
-
-                    val notifInterface = NotificationInterface(context)
-                    notifInterface.scheduledelayNotifications("Hydrates-toi !","N'oublie pas de boire de l'eau.")
-
-
-
-
-                                },
+                onValueChange = {},
                 modifier = Modifier
                     .width(65.dp) // Boîte plus compacte
                     .height(50.dp), // Hauteur réduite
