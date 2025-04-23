@@ -56,6 +56,7 @@ import com.example.atubu.R
 import com.example.atubu.dataInterface.DataAccessObject
 import com.example.atubu.dataInterface.Day
 import com.example.atubu.dataInterface.PreferenceHelper
+import com.example.atubu.notifications.NotificationInterface
 import com.example.atubu.ui.components.AddWaterDialog
 import com.example.atubu.ui.components.DrinkSelectionPanel
 import com.example.atubu.ui.components.PlantAndWater
@@ -153,6 +154,10 @@ fun PlantScreen(){
         history = history + addedWater.toInt() // ajout à l'historique
         // Mettre à jour le widget
         MyAppWidget.updateAllWidgets(context)
+        if (DataAccessObject.getDAO(context).getValue("notification") == "smart"){
+            val notifInterface = NotificationInterface(context)
+            notifInterface.scheduledelayNotifications("Hey es-tu bien hydraté ?", "Cela fait 3h que tu n'as pas bu, tu devrais peut être prendre un verre")
+        }
     }
 
     fun revertAction(){
