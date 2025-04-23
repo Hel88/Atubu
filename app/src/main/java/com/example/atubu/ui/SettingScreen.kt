@@ -400,11 +400,11 @@ fun IntInputField(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(Unit) {
-        delay(300) // Un petit délai pour laisser Compose respirer
-        focusRequester.requestFocus()
-        keyboardController?.show()
-    }
+//    LaunchedEffect(Unit) {
+//        delay(300) // Un petit délai pour laisser Compose respirer
+//        focusRequester.requestFocus()
+//        keyboardController?.show()
+//    }
     val focusManager = LocalFocusManager.current
 
     TextField(
