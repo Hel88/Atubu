@@ -38,7 +38,7 @@ public class NotificationInterface(private val context : Context) {
         .build()
     private val workName = "NotifWorker"
 
-    public fun singleNotification(title : String, text : String) {
+    public fun singleNotification(title: String, text: String) {
 
         val inputData = Data.Builder()
             .putString("Title", title)
@@ -58,7 +58,7 @@ public class NotificationInterface(private val context : Context) {
         )
     }
 
-    public fun dailyNotification(title : String, text : String, hour : Int, minute : Int, second : Int) {
+    public fun dailyNotification(title: String, text: String, hour: Int, minute: Int, second: Int) {
 
         val inputData = Data.Builder()
             .putString("Title", title)
@@ -93,4 +93,45 @@ public class NotificationInterface(private val context : Context) {
         )
     }
 
+    public fun scheduledelayNotifications(title: String, text: String) {
+
+
+
+        var minHour = DataAccessObject.getDAO(context).getValue("minHour").toIntOrNull();
+        if(minHour == null){
+            minHour = 8;
+        }
+        var maxHour = DataAccessObject.getDAO(context).getValue("maxHour").toIntOrNull();
+        if (maxHour == null){
+            maxHour = 23;
+        }
+        var delay =  DataAccessObject.getDAO(context).getValue("maxHour").toIntOrNull();
+        if (delay == null){
+            delay = 3;
+        }
+
+        val inputData = Data.Builder()
+            .putString("Title", title)
+            .putString("Text", text)
+            .putInt("minHour", minHour)
+            .putInt("maxHour", maxHour)
+            .putInt("delay", delay)
+            .build()
+
+        workManager = WorkManager.getInstance(context)
+
+        val dailyWorkRequest = OneTimeWorkRequestBuilder<DelayNotificationWorker>()
+            .setConstraints(constraints)
+            .setInputData(inputData)
+            .setInitialDelay(delay.toLong(), TimeUnit.HOURS)
+            .build()
+
+        workManager.enqueueUniqueWork(
+            workName,
+            ExistingWorkPolicy.REPLACE,
+            dailyWorkRequest
+        )
+
+
+    }
 }
